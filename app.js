@@ -1,6 +1,9 @@
-
 /**
- * Module dependencies.
+ * OZONE Platform API Controller
+ *
+ * Used as a master service controller for OZONE services.
+ *
+ * @constructor
  */
 OzonePlatformApiController = function () {
     var express = require('express'),
@@ -190,6 +193,7 @@ OzonePlatformApiController.prototype.loadApiPlugins = function (location) {
         'status'
     );
 
+    // Run through all of the plugins detected on disk.
     for (pluginIter = 0; pluginIter < plugins.length; pluginIter++) {
         var plugin;
         try {
@@ -257,6 +261,15 @@ OzonePlatformApiController.prototype.loadApiPlugins = function (location) {
     }
 };
 
+/**
+ * Generates an audit entry and displays in console.
+ *
+ * @param  {String} fnName     Module name making the entry
+ * @param  {String} method     Function name calling the audit routine
+ * @param  {[type]} msg        Message to audit
+ * @param  {[type]} status     Status from the event
+ * @param  {[type]} statusType Type of status
+ */
 OzonePlatformApiController.prototype.generateAuditEntry = function (fnName, method, msg, status, statusType) {
     var clc = require('cli-color');
     var msgType = {
