@@ -10,7 +10,8 @@
     "jade": "~0.34.0",
     "cli-color": "~0.2.3",
     "clear": "~0.0.1",
-    "underscore": "~1.5.2"
+    "underscore": "~1.5.2",
+    "js2xmlparser":"~0.1.2"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
