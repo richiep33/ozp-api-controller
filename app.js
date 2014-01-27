@@ -7,18 +7,28 @@
  */
 OzonePlatformApiController = function () {
     var express = require('express'),
-        server, port, options = {},
-        clc = require('cli-color'),
-        clear = require('clear');
+        server, port, options = {};
 
-    this.options = {};
+    // Define options and plugins tracking for scope.
+    this.options = {}, this.plugins = {}, this.nodePlugins = {
+        os: require('os'),
+        fs: require('fs'),
+        clc: require('cli-color'),
+        clear: require('clear')
+    };
+
+    // Reserved parameter keywords parsed by master REST function.
+    this.reservedParameters = {
+        'performance': this.capturePerformanceMetrics,
+        'format': this.processProducerFormat
+    };
 
     // Create the Express application and bootstrap web server.
     this.app = express();
     this.configPath = __dirname + '/config/config.json';
 
     // Flush the console.
-    clear();
+    this.nodePlugins['clear']();
 
     // Load SSL configuration settings from './config'
     this.config = require(this.configPath);
@@ -71,7 +81,6 @@ OzonePlatformApiController = function () {
             this.options['cert'] = this.config['server']['sslCertificate'];
         }
         catch (exception) {
-          console.log(exception);
             // Log configuration failure.
             this.generateAuditEntry(
                 'OzonePlatformApiController',
@@ -110,12 +119,22 @@ OzonePlatformApiController = function () {
     // Create the web server based on protocol.
     try {
         if (this.protocol === 'HTTPS') {
-            this.server.createServer(this.options, this.app).listen(this.app.get('port'), statusCallback.apply(this));
+            this.server.createServer(
+                this.options,
+                this.app
+            ).listen(
+                this.app.get('port'),
+                statusCallback.apply(this)
+            );
         }
         else {
-            this.server.createServer(this.app).listen(this.app.get('port'), statusCallback.apply(this));
+            this.server.createServer(this.app).listen(
+                this.app.get('port'),
+                statusCallback.apply(this)
+            );
         }
     }
+    // Unable to start the Express web server.
     catch (exception) {
         this.generateAuditEntry(
             'OzonePlatformApiController',
@@ -163,15 +182,12 @@ OzonePlatformApiController.prototype.getProtocol = function () {
  * @param  {Function} apiFn     API plugin handler
  * @param  {Function} expressFn Express request/response callback
  */
-OzonePlatformApiController.prototype.middlewareIntercept = function (apiFn, expressFn) {
+OzonePlatformApiController.prototype.middlewareIntercept = function (generationFn, apiFn, expressFn) {
+    // Return closure to wrap arguments scope from Express callback to service generation.
+    var scope = this;
     return function () {
-        var body = 'Hello World';
-        var request = arguments[0]; var response = arguments[1];
-
-        response.setHeader('Content-Type', 'text/plain');
-        response.setHeader('Content-Length', Buffer.byteLength(body));
-        response.end(body);
-    }
+        generationFn(apiFn, arguments[0], arguments[1], scope);
+    };
 };
 
 /**
@@ -181,10 +197,8 @@ OzonePlatformApiController.prototype.middlewareIntercept = function (apiFn, expr
  * @return {[type]}          [description]
  */
 OzonePlatformApiController.prototype.loadApiPlugins = function (location) {
-    var fs = require('fs');
-
     // Load all dynamic service endpoints from configured location.
-    var plugins = fs.readdirSync(location), pluginIter, resourceIter, methodsIter;
+    var plugins = this.nodePlugins['fs'].readdirSync(location), pluginIter, resourceIter, methodsIter;
     this.generateAuditEntry(
         'OzonePlatformApiController',
         'loadApiPlugins',
@@ -199,13 +213,25 @@ OzonePlatformApiController.prototype.loadApiPlugins = function (location) {
         try {
             // Retrieve path from API plugin folder and inject.
             var pluginUri = this.config['apiPlugins']['folder'] + '/' + plugins[pluginIter] + '/manifest.json';
-            plugin = require(pluginUri);
+            var plugin = require(pluginUri);
 
             this.generateAuditEntry(
                 'OzonePlatformApiController',
                 'loadApiPlugins',
                 'Loaded plugin',
                 plugins[pluginIter],
+                'success'
+            );
+
+            // Store the plugin manifest for retrieval and OPTIONS enumeration.
+            var pluginId = plugin['informational']['plugin'];
+            this.plugins[pluginId] = plugin;
+
+            this.generateAuditEntry(
+                'OzonePlatformApiController',
+                'loadApiPlugins',
+                'Stored plugin metadata',
+                pluginId,
                 'success'
             );
 
@@ -220,6 +246,7 @@ OzonePlatformApiController.prototype.loadApiPlugins = function (location) {
                 'info'
             );
 
+            // Dynamically build all service routes by HTTP method.
             for (resourceIter = 0; resourceIter < plugin['resources'].length; resourceIter++) {
                 // Attach the version from the API plugin manifest.
                 serviceUri += 'v' + plugin['resources'][resourceIter]['version'] + '/';
@@ -234,11 +261,26 @@ OzonePlatformApiController.prototype.loadApiPlugins = function (location) {
                 for (methodsIter = 0; methodsIter < httpMethods.length; methodsIter++) {
                     // Alias the RESTful method and API function.
                     var method = httpMethods[methodsIter]['httpMethod'];
+
+                    var apiPath = this.config['apiPlugins']['folder'] + '/' +
+                        plugins[pluginIter] + '/api/' + plugin['resources'][resourceIter]['implementation'];
+
+                    var implementation = require(apiPath);
+                    var instance = new implementation();
+
                     var fn = httpMethods[methodsIter]['function'];
 
                     // Bind the HTTP method to the service URI and attach API fn.
-                    this.app[method.toLowerCase()](serviceUri, this.middlewareIntercept(fn, function (request, response) {}));
+                    this.app[method.toLowerCase()](
+                        serviceUri,
+                        this.middlewareIntercept(
+                            this.generateResponse,
+                            instance[fn],
+                            function (request, response) {}
+                        )
+                    );
 
+                    // Log the service URI attachment.
                     this.generateAuditEntry(
                         'OzonePlatformApiController',
                         'loadApiPlugins',
@@ -248,6 +290,17 @@ OzonePlatformApiController.prototype.loadApiPlugins = function (location) {
                     );
                 }
             }
+
+            // Attach OPTIONS enumeration method to base service URI.
+            var serviceContext = this.config['api']['serviceRoot'] + plugin['route']['uri'];
+            this.app['options'](
+                serviceContext,
+                this.middlewareIntercept(
+                    this.generateResponse,
+                    this.enumerateServiceParameters.apply({metadata: this.plugins[pluginId]}),
+                    function (request, response) {}
+                )
+            );
         }
         catch (exception) {
             this.generateAuditEntry(
@@ -271,23 +324,63 @@ OzonePlatformApiController.prototype.loadApiPlugins = function (location) {
  * @param  {[type]} statusType Type of status
  */
 OzonePlatformApiController.prototype.generateAuditEntry = function (fnName, method, msg, status, statusType) {
-    var clc = require('cli-color');
     var msgType = {
-        error: clc.red,                       // red
-        warning: clc.xterm(178).bgXterm(0),   // orange
-        info: clc.blue,                       // blue
-        status: clc.magenta,                  // magenta
-        success: clc.green                    // green
+        error: this.nodePlugins['clc'].red,                       // red
+        warning: this.nodePlugins['clc'].xterm(178).bgXterm(0),   // orange
+        info: this.nodePlugins['clc'].blue,                       // blue
+        status: this.nodePlugins['clc'].magenta,                  // magenta
+        success: this.nodePlugins['clc'].green                    // green
     };
 
     console.log(
-        clc.yellow(fnName) +
+        this.nodePlugins['clc'].yellow(fnName) +
         '::' +
-        clc.cyan(method + '()') +
+        this.nodePlugins['clc'].cyan(method + '()') +
         ' -> ' +
-        clc.yellow(msg) +
+        this.nodePlugins['clc'].yellow(msg) +
         ' : ' +
         msgType[statusType](status)
+    );
+};
+
+/**
+ * Enumerates the manifest from the API plugin to return via an OPTIONS call.
+ *
+ * @return {[type]} [description]
+ */
+OzonePlatformApiController.prototype.enumerateServiceParameters = function () {
+    //console.log(this.metadata);
+};
+
+OzonePlatformApiController.prototype.generateResponse = function (apiFn, request, response, scope) {
+    var requestStarted = new Date();
+    var apiResponse = apiFn();
+    var requestEnded = new Date();
+    response.send(apiResponse.httpCode, {
+        httpCode: apiResponse.httpCode,
+        url: request.url,
+        system: {
+            proc: scope.nodePlugins['os'].cpus().length,
+            server: scope.nodePlugins['os'].hostname(),
+            load: scope.nodePlugins['os'].loadavg()[0],
+            freeMem: scope.nodePlugins['os'].freemem()
+        },
+        performance: {
+            requestTime: requestEnded - requestStarted,
+            requestStarted: requestStarted,
+            requestEnded: requestEnded
+        },
+        results: apiResponse.results
+    });
+
+    // Log the REST request to the log.
+    console.log(
+        scope.nodePlugins['clc'].blue('RESTful API request') +
+        ' -> ' +
+        scope.nodePlugins['clc'].magenta(request.url) +
+        ' [' + scope.nodePlugins['clc'].green(apiResponse.httpCode) + ']' +
+        ' -> ' +
+        scope.nodePlugins['clc'].blue(apiResponse.results.length + ' records, ' + Buffer.byteLength(apiResponse.results.toString()) + ' bytes')
     );
 };
 
