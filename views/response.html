@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>OZONE API</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/components/bootstrap/dist/css/bootstrap.min.css">
+    </head>
+    <body>
+        <div class="container">
+            <h2 class="lead">{{info.name}}</h2>
+            <h3><small>{{info.desc}}</small></h3>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Query Information
+                </div>
+                <div class="panel-body">
+                    <dl class="dl-horizontal">
+                        <dt>Query URL</dt>
+                        <dd><a href="{{response.url}}">{{response.url}}</a></dd>
+                        <dt>HTTP Code</dt>
+                        <dd>{{response.httpCode}}</dd>
+                    <dl>
+                </div>
+            </div>
+
+            {{#if response.performance}}
+                {{> performance}}
+            {{/if}}
+
+            {{#if response.request}}
+                {{> request}}
+            {{/if}}
+
+            {{#if response.system}}
+                {{> system}}
+            {{/if}}
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Query Results: <strong>{{response.total}} record(s)</strong>
+                </div>
+                {{#if response.results.length}}
+                    {{#datatable response.results}}{{/datatable}}
+                {{/if}}
+            </div>
+        </div>
+    </body>
+</html>
