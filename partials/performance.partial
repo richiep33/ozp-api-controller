@@ -1,0 +1,17 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        Performance Metrics
+    </div>
+    <div class="panel-body">
+        <dl class="dl-horizontal">
+            <dl class="dl-horizontal">
+                <dt>Request Time</dt>
+                <dd>{{response.performance.requestTimeSeconds}} seconds</dd>
+                <dt>Start Time</dt>
+                <dd>{{response.performance.requestStarted}}</dd>
+                <dt>End Time</dt>
+                <dd>{{response.performance.requestEnded}}</dd>
+            </dl>
+        <dl>
+    </div>
+</div>

@@ -1,0 +1,23 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        Request Information
+    </div>
+    <div class="panel-body">
+            <dl class="dl-horizontal">
+            <dt>AJAX Request</dt>
+            <dd>{{#if response.request.viaAjax}}True{{else}}False{{/if}}</dd>
+            <dt>Using SSL/TLS</dt>
+            <dd>{{#if response.request.ssl}}True{{else}}False{{/if}}</dd>
+            <dt>Client IP</dt>
+            <dd>{{response.request.ipAddress}}</dd>
+            <dt>Operating System</dt>
+            <dd>{{response.request.os}}</dd>
+            <dt>Platform</dt>
+            <dd>{{response.request.platform}}</dd>
+            <dt>Browser</dt>
+            <dd>{{response.request.browser}}</dd>
+            <dt>Browser Version</dt>
+            <dd>{{response.request.browserVersion}}</dd>
+        </dl>
+    </div>
+</div>

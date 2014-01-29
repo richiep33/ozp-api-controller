@@ -1,0 +1,17 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        System Information
+    </div>
+    <div class="panel-body">
+        <dl class="dl-horizontal">
+            <dt>Processors/Cores</dt>
+            <dd>{{response.system.proc}}</dd>
+            <dt>API Server</dt>
+            <dd>{{response.system.server}}</dd>
+            <dt>Current Load</dt>
+            <dd>{{response.system.load}}</dd>
+            <dt>Free Memory</dt>
+            <dd>{{response.system.freeMem}} MB</dd>
+        </dl>
+    </div>
+</div>
