@@ -176,33 +176,6 @@ var OzonePlatformApiController = function () {
 };
 
 /**
- * Gets API Controller configuration
- *
- * @return {Object} Configuration JSON object
- */
-OzonePlatformApiController.prototype.getConfig = function() {
-    return this.config;
-};
-
-/**
- * Gets API controller port mapping.
- *
- * @return {Number} HTTP server port
- */
-OzonePlatformApiController.prototype.getPort = function() {
-    return this.port;
-};
-
-/**
- * Gets API controller protocol.
- *
- * @return {String} HTTP protocol in use
- */
-OzonePlatformApiController.prototype.getProtocol = function() {
-    return this.protocol;
-};
-
-/**
  * Loads RESTful API services as plugins from file system.
  *
  * @param  {String} location Location of API plugins
@@ -575,8 +548,10 @@ OzonePlatformApiController.prototype.htmlProducer = function(json) {
     handlebars.registerPartial('system', fs.readFileSync('./partials/system.partial', {encoding: 'utf-8'}));
     handlebars.registerPartial('request', fs.readFileSync('./partials/request.partial', {encoding: 'utf-8'}));
 
+    // Register the data table helper.
     handlebars.registerHelper('datatable', this.dataTableTemplateHelper);
 
+    // Compile the template and generate the HTML view.
     var htmlTemplate = handlebars.compile(view);
     return htmlTemplate({
         response: json,
