@@ -598,10 +598,11 @@ OzonePlatformApiController.prototype.jsonProducer = function(json) {
 };
 
 /**
- * [dataTableTemplateHelper description]
- * @param  {[type]} items   [description]
- * @param  {[type]} options [description]
- * @return {[type]}         [description]
+ * Helper for data table template in Handlebars for response object
+ *
+ * @param  {Array}  items   Array of items from the record set
+ * @param  {Object} options Handlebar options for the helper
+ * @return {String}         Concatenated string of the HTML fragment
  */
 OzonePlatformApiController.prototype.dataTableTemplateHelper = function (items, options) {
     // Default Bootstrap classes for table.
