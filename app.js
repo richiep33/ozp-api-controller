@@ -575,32 +575,7 @@ OzonePlatformApiController.prototype.htmlProducer = function(json) {
     handlebars.registerPartial('system', fs.readFileSync('./partials/system.partial', {encoding: 'utf-8'}));
     handlebars.registerPartial('request', fs.readFileSync('./partials/request.partial', {encoding: 'utf-8'}));
 
-    handlebars.registerHelper('datatable', function (items, options) {
-        // Default Bootstrap classes for table.
-        var out = '<table class="table table-striped table-hover table-bordered">';
-
-        // Generate the table headers.
-        out += '<tr>';
-        var keys = underscore.keys(items[0]);
-        for (var keyIter = 0; keyIter < keys.length; keyIter++) {
-            out += '<th>' + keys[keyIter] + '</th>'
-        }
-        out += '</tr>';
-
-        // Strip out the values and insert into rows.
-        for (var i = 0, l = items.length; i < l; i++) {
-            out += '<tr>';
-            for (keyIter = 0; keyIter < keys.length; keyIter++) {
-                var key = keys[keyIter];
-                out += '<td>' + items[i][key] + '</td>'
-            }
-            out += '</tr>';
-        }
-
-        // Terminate table.
-        out += '</table>';
-        return out;
-    });
+    handlebars.registerHelper('datatable', this.dataTableTemplateHelper);
 
     var htmlTemplate = handlebars.compile(view);
     return htmlTemplate({
@@ -620,6 +595,39 @@ OzonePlatformApiController.prototype.htmlProducer = function(json) {
  */
 OzonePlatformApiController.prototype.jsonProducer = function(json) {
     return json;
+};
+
+/**
+ * [dataTableTemplateHelper description]
+ * @param  {[type]} items   [description]
+ * @param  {[type]} options [description]
+ * @return {[type]}         [description]
+ */
+OzonePlatformApiController.prototype.dataTableTemplateHelper = function (items, options) {
+    // Default Bootstrap classes for table.
+    var out = '<table class="table table-striped table-hover table-bordered">';
+
+    // Generate the table headers.
+    out += '<tr>';
+    var keys = underscore.keys(items[0]);
+    for (var keyIter = 0; keyIter < keys.length; keyIter++) {
+        out += '<th>' + keys[keyIter] + '</th>'
+    }
+    out += '</tr>';
+
+    // Strip out the values and insert into rows.
+    for (var i = 0, l = items.length; i < l; i++) {
+        out += '<tr>';
+        for (keyIter = 0; keyIter < keys.length; keyIter++) {
+            var key = keys[keyIter];
+            out += '<td>' + items[i][key] + '</td>'
+        }
+        out += '</tr>';
+    }
+
+    // Terminate table.
+    out += '</table>';
+    return out;
 };
 
 var api = new OzonePlatformApiController();
