@@ -59,7 +59,8 @@ var OzonePlatformApiController = function () {
             'Failure',
             'error'
         );
-    } else {
+    }
+    else {
         this.generateAuditEntry(
             'OzonePlatformApiController',
             'constructor',
