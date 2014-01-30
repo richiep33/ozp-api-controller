@@ -39,6 +39,10 @@ var OzonePlatformApiController = function () {
         'request': {
             type: 'boolean',
             defaultValue: false
+        },
+        'enumerate': {
+            type: 'boolean',
+            defaultValue: true
         }
     };
 
@@ -90,6 +94,9 @@ var OzonePlatformApiController = function () {
 
     // Define the port for the Express app.
     this.app.set('port', this.port);
+
+    // Remove the Express 'powered by' header.
+    this.app.disable('x-powered-by');
 
     // Define protocol (Plaintext or SSL/TLS)
     this.protocol = this.config.server.useSSL ? 'HTTPS' : 'HTTP';
@@ -185,6 +192,7 @@ OzonePlatformApiController.prototype.loadApiPlugins = function(location) {
     // Load all dynamic service endpoints from configured location.
     var plugins = this.nodePlugins.fs.readdirSync(location),
         pluginIter, resourceIter, methodsIter;
+
     this.generateAuditEntry(
         'OzonePlatformApiController',
         'loadApiPlugins',
@@ -278,25 +286,13 @@ OzonePlatformApiController.prototype.loadApiPlugins = function(location) {
                     );
                 }
             }
-
-            // Attach OPTIONS enumeration method to base service URI.
-            var scope = {
-                controller: this,
-                apiFn: instance[fn],
-                metadata: this.plugins[pluginId]
-            };
-            var serviceContext = this.config.api.serviceRoot + plugin.route.uri;
-            this.app.options(
-                serviceContext,
-                this.nodePlugins.underscore.bind(this.enumerateServiceParameters, scope)
-            );
         }
         catch (exception) {
             this.generateAuditEntry(
                 'OzonePlatformApiController',
                 'loadApiPlugins',
                 'Not able to instanciate plugin',
-                plugins[pluginIter] + ' (' + exception + ')',
+                plugins[pluginIter],
                 'error'
             );
         }
@@ -332,17 +328,10 @@ OzonePlatformApiController.prototype.generateAuditEntry = function(fnName, metho
     );
 };
 
-/**
- * Enumerates the manifest from the API plugin to return via an OPTIONS call.
- *
- * @return {[type]} [description]
- */
-OzonePlatformApiController.prototype.enumerateServiceParameters = function() {
-    //console.log(this.metadata);
-};
-
 OzonePlatformApiController.prototype.generateResponse = function(request, response) {
     var reservedParameters = {}, queryParameters = [], globalParameters = [], parameter;
+    var underscore = this.controller.nodePlugins.underscore;
+
     // Start the timing routine.
     var requestStarted = new Date();
 
@@ -386,48 +375,20 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
 
     // Reserved 'performance' parameter check.
     if (reservedParameters.request) {
-        if (reservedParameters.request.value === 'true') {
-            responseObject = this.controller.nodePlugins.underscore.extend(responseObject, {
-                request: {
-                    viaAjax: request.xhr,
-                    os: request.useragent.OS,
-                    platform: request.useragent.Platform,
-                    browser: request.useragent.Browser,
-                    browserVersion: request.useragent.Version,
-                    ipAddress: request.ip,
-                    ssl: request.secure,
-                    apiParameters: queryParameters,
-                    globalParameters: globalParameters
-                }
-            });
-        }
+        var requestMetadata = this.controller.injectRequestMetadata(reservedParameters.request, queryParameters, globalParameters, request);
+        underscore.extend(responseObject, requestMetadata);
     }
 
     // Reserved 'performance' parameter check.
     if (reservedParameters.performance) {
-        if (reservedParameters.performance.value === 'true') {
-            responseObject = this.controller.nodePlugins.underscore.extend(responseObject, {
-                performance: {
-                    requestTimeSeconds: (requestEnded - requestStarted) / 1000,
-                    requestStarted: requestStarted,
-                    requestEnded: requestEnded
-                }
-            });
-        }
+        var performanceMetadata = this.controller.injectPerformanceMetadata(reservedParameters.performance, requestStarted, requestEnded);
+        underscore.extend(responseObject, performanceMetadata);
     }
 
     // Reserved 'system' parameter check.
     if (reservedParameters.system) {
-        if (reservedParameters.system.value === 'true') {
-            responseObject = this.controller.nodePlugins.underscore.extend(responseObject, {
-                system: {
-                    proc: this.controller.nodePlugins.os.cpus().length,
-                    server: this.controller.nodePlugins.os.hostname(),
-                    load: this.controller.nodePlugins.os.loadavg()[0],
-                    freeMem: (this.controller.nodePlugins.os.freemem() / 1000000).toFixed(2)
-                }
-            });
-        }
+        var systemMetadata = this.controller.injectSystemMetadata(reservedParameters.system, this.controller.nodePlugins.os);
+        underscore.extend(responseObject, performanceMetadata);
     }
 
     this.controller.metadata = this.metadata;
@@ -480,6 +441,16 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
             break;
     }
 
+    // Was CORS defined for the service plugin? Attach header if so.
+    if (this.metadata.route.hasOwnProperty('cors')) {
+        if (this.metadata.route.cors.enable) {
+            response.header('Access-Control-Allow-Origin', this.metadata.route.cors.whitelist);
+            response.header('Access-Control-Allow-Headers', 'X-Requested-With');
+            response.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
+            response.header('Access-Control-Allow-Headers', 'Content-Type');
+        }
+    }
+
     // Send the response back to the client.
     response.send(apiResponse.httpCode, formattedResponse);
 
@@ -495,6 +466,91 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
         ' -> ' +
         this.controller.nodePlugins.clc.blue(apiResponse.results.length + ' records, ' + Buffer.byteLength(apiResponse.results.toString()) + ' bytes')
     );
+};
+
+/**
+ * Enumerates the manifest from the API plugin to return via an OPTIONS call.
+ *
+ * @return {[type]} [description]
+ */
+OzonePlatformApiController.prototype.enumerateServiceParameters = function() {
+    console.log(this.metadata);
+};
+
+/**
+ * Injects an object for HTTP request metadata.
+ *
+ * @param  {Object} parameter   URL parsed parameter information
+ * @param  {Array}  query       An array of parsed query parameters
+ * @param  {Array}  global      An array of parsed global parameters
+ * @param  {Object} httpRequest Express callback-driven request function
+ * @return {Object}             Request metadata information object
+ */
+OzonePlatformApiController.prototype.injectRequestMetadata = function (parameter, query, global, httpRequest) {
+    // Did user ask to see request metadata?
+    if (parameter.value === 'true') {
+        var responseObject = {
+            request: {
+                viaAjax: httpRequest.xhr,
+                os: httpRequest.useragent.OS,
+                platform: httpRequest.useragent.Platform,
+                browser: httpRequest.useragent.Browser,
+                browserVersion: httpRequest.useragent.Version,
+                ipAddress: httpRequest.ip,
+                ssl: httpRequest.secure,
+                apiParameters: query,
+                globalParameters: global
+            }
+        };
+    }
+    // Supply the metadata or no information.
+    return responseObject || {};
+};
+
+/**
+ * Injects an object for request performance metadata.
+ *
+ * @param  {Object} parameter URL parsed parameter information
+ * @param  {Date}   start     Date prior to API plugin function
+ * @param  {Date}   end       Date after API plugin function
+ * @return {Object}           Performance metadata information object
+ */
+OzonePlatformApiController.prototype.injectPerformanceMetadata = function (parameter, start, end) {
+    // Did user ask to see performance metadata?
+    if (parameter.value === 'true') {
+        var responseObject = {
+            performance: {
+                requestTimeSeconds: (end - start) / 1000,
+                requestStarted: start,
+                requestEnded: end
+            }
+        };
+    }
+    // Supply the metadata or no information.
+    return responseObject || {};
+};
+
+/**
+ * Injects an object for request performance metadata.
+ *
+ * @param  {Object} parameter URL parsed parameter information
+ * @param  {Object} os        NodeJS operating system module
+ * @return {Object}           System metadata information object
+ */
+OzonePlatformApiController.prototype.injectSystemMetadata = function (parameter, os) {
+    // Did user ask to see system metadata?
+    if (parameter.value === 'true') {
+        var responseObject = {
+            system: {
+                proc: os.cpus().length,
+                server: os.hostname(),
+                load: os.loadavg()[0],
+                freeMem: (os.freemem() / 1000000).toFixed(2)
+            }
+        };
+    }
+    // Supply the metadata or no information.
+    return responseObject || {};
 };
 
 /**
@@ -585,7 +641,11 @@ OzonePlatformApiController.prototype.dataTableTemplateHelper = function (items, 
 
     // Generate the table headers.
     out += '<tr>';
-    var keys = underscore.keys(items[0]);
+    var keys = [];
+    for (var k in items[0]) {
+        keys.push(k);
+    }
+
     for (var keyIter = 0; keyIter < keys.length; keyIter++) {
         out += '<th>' + keys[keyIter] + '</th>'
     }
