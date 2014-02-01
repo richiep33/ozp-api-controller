@@ -1,4 +1,19 @@
-<div class="panel panel-default">
+<div class="panel
+    {{#compare response.performance.requestTimeSeconds "lt" 1}}
+        panel-success
+    {{else}}
+        {{#compare response.performance.requestTimeSeconds "eq" 1}}
+            panel-success
+        {{/compare}}
+    {{/compare}}
+    {{#compare response.performance.requestTimeSeconds "gt" 1}}
+        {{#compare response.performance.requestTimeSeconds "lt" 2}}
+            panel-warning
+        {{else}}
+            panel-danger
+        {{/compare}}
+    {{/compare}}">
+
     <div class="panel-heading">
         Performance Metrics
     </div>
