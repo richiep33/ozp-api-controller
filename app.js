@@ -329,7 +329,7 @@ OzonePlatformApiController.prototype.generateAuditEntry = function(fnName, metho
 };
 
 OzonePlatformApiController.prototype.generateResponse = function(request, response) {
-    var reservedParameters = {}, queryParameters = [], globalParameters = [], parameter;
+    var reservedParameters = {}, queryParameters = [], globalParameters = [], parameter, valueIter;
     var underscore = this.controller.nodePlugins.underscore;
 
     // Start the timing routine.
@@ -342,11 +342,25 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
             // Clone the parameter configuration.
             var resObj = {};
             resObj[parameter] = request.query[parameter];
+
+            // Parameter was passed multiple times. Express aggregates value to an array.
+            if (typeof resObj[parameter] === 'object') {
+                var value;
+                for (valueIter = 0; valueIter < resObj[parameter].length; valueIter++) {
+                    if (resObj[parameter][valueIter] != this.controller.reservedParameters[parameter].defaultValue.toString()) {
+                        value = resObj[parameter][valueIter];
+                    }
+                }
+                // Deconflict the value.
+                resObj[parameter] = value || this.controller.reservedParameters[parameter].defaultValue;
+            }
+
+            // Push the sanitized global parameter.
             globalParameters.push(resObj);
             reservedParameters[parameter] = this.controller.reservedParameters[parameter];
 
             // Assign the supplied parameter value.
-            reservedParameters[parameter].value = request.query[parameter];
+            reservedParameters[parameter].value = resObj[parameter];
         }
         // If not, bin it to send to the API handler.
         else {
@@ -682,6 +696,7 @@ OzonePlatformApiController.prototype.htmlProducer = function(json) {
     handlebars.registerPartial('system', fs.readFileSync('./partials/system.partial', {encoding: 'utf-8'}));
     handlebars.registerPartial('request', fs.readFileSync('./partials/request.partial', {encoding: 'utf-8'}));
     handlebars.registerPartial('query', fs.readFileSync('./partials/query.partial', {encoding: 'utf-8'}));
+    handlebars.registerHelper('compare', this.comparisonHelper);
 
     // Register the data table helper.
     handlebars.registerHelper('datatable', this.dataTableTemplateHelper);
