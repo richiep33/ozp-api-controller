@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>OZONE API Info</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/components/bootstrap/dist/css/bootstrap.min.css">
+    </head>
+    <body>
+        <div class="container">
+            <h2 class="lead">
+                {{service.name}} : <code>{{service.plugin}}</code> -
+                <strong>{{#capitalize service.serviceName}}{{/capitalize}} Service</strong>
+            </h2>
+            <h3 class="well lead">{{service.description}}</h3>
+
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    RESTful Service '<strong>{{service.serviceName}}</strong>' at {{service.route}}
+                </div>
+                <div class="panel-body">
+                    {{> enum-options}}
+                </div>
+            </div>
+
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    Service Parameters
+                </div>
+                <div class="panel-body">
+                    {{> enum-params}}
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
