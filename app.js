@@ -370,6 +370,8 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
         results: apiResponse.results
     };
 
+    // @TODO : Need to deconflict multiple reserved parameters.
+
     // Must always check format, even if not present.
     reservedParameters.format = reservedParameters.format || this.controller.reservedParameters.format;
 
@@ -388,7 +390,11 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
     // Reserved 'system' parameter check.
     if (reservedParameters.system) {
         var systemMetadata = this.controller.injectSystemMetadata(reservedParameters.system, this.controller.nodePlugins.os);
-        underscore.extend(responseObject, performanceMetadata);
+        underscore.extend(responseObject, systemMetadata);
+    }
+
+    if (reservedParameters.enumerate) {
+        responseObject = this.controller.injectEnumerationMetadata(reservedParameters.enumerate, this.metadata, request);
     }
 
     this.controller.metadata = this.metadata;
@@ -416,10 +422,20 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
             break;
         case ('html'):
             response.set('Content-Type', 'text/html');
-            var producer = this.controller.nodePlugins.underscore.bind(
-                this.controller.htmlProducer,
-                this.controller
-            );
+            if (reservedParameters.enumerate) {
+                if (reservedParameters.enumerate.value) {
+                    var producer = this.controller.nodePlugins.underscore.bind(
+                        this.controller.htmlEnumerationProducer,
+                        this.controller
+                    );
+                }
+            }
+            else {
+                var producer = this.controller.nodePlugins.underscore.bind(
+                    this.controller.htmlProducer,
+                    this.controller
+                );
+            }
             formattedResponse = producer(responseObject);
             break;
         case ('csv'):
@@ -468,13 +484,54 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
     );
 };
 
-/**
- * Enumerates the manifest from the API plugin to return via an OPTIONS call.
- *
- * @return {[type]} [description]
- */
-OzonePlatformApiController.prototype.enumerateServiceParameters = function() {
-    console.log(this.metadata);
+OzonePlatformApiController.prototype.injectEnumerationMetadata = function (parameter, metadata, request) {
+    // Base information.
+    var enumeration = {
+        plugin: metadata.informational.plugin,
+        name: metadata.informational.name,
+        description: metadata.informational.description,
+        headers: []
+    };
+
+    // Break out the headers available for the service.
+    for (var header in metadata.route.options) {
+        if (metadata.route.options[header].enable) {
+            var newHeader = {};
+            newHeader.header = header;
+            newHeader.value = metadata.route.options[header].enable;
+            enumeration.headers.push(newHeader);
+        }
+    }
+
+    // Find the route and break into URI tokens.
+    var route = request.route.path;
+    var routeTokens = route.split('/');
+
+    // Sanitize the route tokens.
+    for (var i = 0; i < routeTokens.length; i++) {
+        if (routeTokens[i] === '') {
+            routeTokens.splice(i, 1);
+        }
+    }
+
+    // Determine service and route via request.
+    var service = routeTokens[routeTokens.length - 1];
+    enumeration.route = route;
+    enumeration.serviceName = service;
+
+    // Determine the applicable resource from the route.
+    var resource;
+    for (var j = 0; j < metadata.resources.length; j++) {
+        if (metadata.resources[j].route === service) {
+            resource = metadata.resources[j];
+        }
+    }
+
+    // Supply matching resource metadata from manifest.
+    enumeration.resource = resource;
+
+    // Return to template generator.
+    return enumeration;
 };
 
 /**
@@ -585,6 +642,27 @@ OzonePlatformApiController.prototype.xmlProducer = function(json) {
     return this.nodePlugins.js2xmlparser('response', json);
 };
 
+OzonePlatformApiController.prototype.htmlEnumerationProducer = function (json) {
+    // Define variables and alias the needed plugins.
+    var html = [], handlebars = this.nodePlugins.handlebars,
+        fs = this.nodePlugins.fs, underscore = this.nodePlugins.underscore;
+
+    // Load the HTML response view template.
+    var view = fs.readFileSync('./views/enumeration.html', {encoding: 'utf-8'});
+
+    // Register the partial handlers for compilation.
+    handlebars.registerPartial('enum-options', fs.readFileSync('./partials/enumoptions.partial', {encoding: 'utf-8'}));
+    handlebars.registerPartial('enum-params', fs.readFileSync('./partials/enumparams.partial', {encoding: 'utf-8'}));
+    handlebars.registerHelper('compare', this.comparisonHelper);
+    handlebars.registerHelper('capitalize', this.capitalizeHelper);
+
+    // Compile the template and generate the HTML view.
+    var htmlTemplate = handlebars.compile(view);
+    return htmlTemplate({
+        service: json
+    });
+};
+
 /**
  * Emits response object as an HTML document.
  *
@@ -603,6 +681,7 @@ OzonePlatformApiController.prototype.htmlProducer = function(json) {
     handlebars.registerPartial('performance', fs.readFileSync('./partials/performance.partial', {encoding: 'utf-8'}));
     handlebars.registerPartial('system', fs.readFileSync('./partials/system.partial', {encoding: 'utf-8'}));
     handlebars.registerPartial('request', fs.readFileSync('./partials/request.partial', {encoding: 'utf-8'}));
+    handlebars.registerPartial('query', fs.readFileSync('./partials/query.partial', {encoding: 'utf-8'}));
 
     // Register the data table helper.
     handlebars.registerHelper('datatable', this.dataTableTemplateHelper);
@@ -626,6 +705,32 @@ OzonePlatformApiController.prototype.htmlProducer = function(json) {
  */
 OzonePlatformApiController.prototype.jsonProducer = function(json) {
     return json;
+};
+
+OzonePlatformApiController.prototype.comparisonHelper = function(v1, op, v2, options) {
+    var c = {
+      "eq": function(v1, v2) {
+          return v1 == v2;
+      },
+      "neq": function(v1, v2) {
+          return v1 != v2;
+      },
+      "gt": function(v1, v2) {
+          return v1 > v2;
+      },
+      "lt": function(v1, v2) {
+          return v1 < v2;
+      }
+    };
+
+    if (Object.prototype.hasOwnProperty.call(c, op)) {
+        return c[op].call(this, v1, v2) ? options.fn(this) : options.inverse(this);
+    }
+    return options.inverse( this );
+};
+
+OzonePlatformApiController.prototype.capitalizeHelper = function(word) {
+    return word.charAt(0).toUpperCase() + word.slice(1);
 };
 
 /**
