@@ -7,10 +7,10 @@
     </head>
     <body>
         <div class="container">
-            <h2 class="lead">{{info.name}}</h2>
-            <h3><small>{{info.desc}}</small></h3>
+            <h2 class="lead">{{info.name}} Plugin</h2>
+            <h3 class="well lead">{{info.desc}}</small></h3>
 
-            <div class="panel panel-default">
+            <div class="panel panel-info">
                 <div class="panel-heading">
                     Query Information
                 </div>
@@ -36,14 +36,7 @@
                 {{> system}}
             {{/if}}
 
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    Query Results: <strong>{{response.total}} record(s)</strong>
-                </div>
-                {{#if response.results.length}}
-                    {{#datatable response.results}}{{/datatable}}
-                {{/if}}
-            </div>
+            {{> query}}
         </div>
     </body>
 </html>
