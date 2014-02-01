@@ -1,0 +1,14 @@
+<div class="panel
+    {{#compare response.total "gt" 0}}
+        panel-success
+    {{else}}
+        panel-warning
+    {{/compare}}
+">
+    <div class="panel-heading">
+        Query Results: <strong>{{response.total}} record(s)</strong>
+    </div>
+    {{#if response.results.length}}
+        {{#datatable response.results}}{{/datatable}}
+    {{/if}}
+</div>
