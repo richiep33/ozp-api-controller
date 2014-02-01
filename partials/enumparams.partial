@@ -1,0 +1,57 @@
+    {{#each service.resource.parameters}}
+    <dl class="well dl-horizontal">
+        <dt>What is it?</dt>
+        <dd>{{description}}</dd>
+        <dt>Parameter</dt>
+        <dd><code>{{parameter}}</code></dd>
+        <dt>Type</dt>
+        <dd><code>{{type}}</code></dd>
+        <dt>How to use</dt>
+        <dd>
+            <ul class="list-unstyled">
+            {{#each examples}}
+                <li><code>"&{{this}}"</code></li>
+            {{/each}}
+            </ul>
+        </dd>
+        <dt>Value Wildcards</dt>
+        <dd>
+            {{#if wildCardAllowed}}
+                True
+            {{else}}
+                False
+            {{/if}}
+        </dd>
+        <dt>Parameter Operators</dt>
+        <dd>
+            <code>
+            {{#each operators}}
+                {{this}}&nbsp
+            {{/each}}
+            </code>
+        </dd>
+        {{#each required}}
+            <dt>HTTP {{method}} method<dt>
+            <dd>This parameter is
+                <strong>
+                {{#if isRequired}}
+                    required
+                {{else}}
+                    not required
+                {{/if}}
+                </strong>
+
+                and
+
+                <strong>
+                {{#if administrative}}
+                    requires
+                {{else}}
+                    does not require
+                {{/if}}
+                </strong>
+
+                administrative privileges.
+        {{/each}}
+    </dl>
+{{/each}}

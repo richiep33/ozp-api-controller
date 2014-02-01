@@ -1,0 +1,9 @@
+<li>API Plugin is at <strong>version {{service.resource.version}}</strong>.</li>
+<li>Current implementation is <code>{{service.resource.implementation}}</code></li>
+<li>Configured HTTP header options include:
+    <code>
+    {{#each service.headers}}
+        {{header}}
+    {{/each}}
+    </code>
+</li>
