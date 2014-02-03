@@ -1,0 +1,96 @@
+{
+    "informational": {
+        "required": true,
+        "plugin": "ozp-security",
+        "name": "OZONE Platform - Security",
+        "description": "Security and authorization services for OZONE."
+    },
+    "route": {
+        "uri": "security/",
+        "options": {
+            "cors": {
+                "enable": true,
+                "whitelist": "*"
+            },
+            "csrf": {
+                "enable": true
+            }
+        }
+    },
+    "resources": [{
+        "version": "1",
+        "route": "user",
+        "httpMethods": [{
+            "httpMethod": "GET",
+            "function": "findUser"
+        }, {
+            "httpMethod": "POST",
+            "function": "modifyUser"
+        }, {
+            "httpMethod": "DELETE",
+            "function": "removeUser"
+        }],
+        "parameters": [{
+            "parameter": "id",
+            "type": "number",
+            "required": [{
+                "method": "GET",
+                "isRequired": false,
+                "administrative": false
+            }, {
+                "method": "POST",
+                "isRequired": false,
+                "administrative": true
+            }, {
+                "method": "DELETE",
+                "isRequired": true,
+                "administrative": true
+            }],
+            "examples": [
+                "id=1",
+                "id<50",
+                "id>241"
+            ],
+            "operators": ["=", ">", "<"],
+            "wildCardAllowed": false,
+            "description": "Search for a user by system ID."
+        }, {
+            "parameter": "user",
+            "type": "string",
+            "required": [{
+                "method": "GET",
+                "isRequired": false,
+                "administrative": false
+            }, {
+                "method": "POST",
+                "isRequired": false,
+                "administrative": true
+            }],
+            "examples": [
+                "user=testUser",
+                "user=tes*"
+            ],
+            "operators": ["="],
+            "wildCardAllowed": true,
+            "description": "Search for a user by alias or name."
+        }, {
+            "parameter": "email",
+            "type": "email",
+            "required": [{
+                "method": "GET",
+                "isRequired": false,
+                "administrative": false
+            }, {
+                "method": "POST",
+                "isRequired": true,
+                "administrative": false
+            }],
+            "examples": [
+                "email=testUser1@company.net"
+            ],
+            "operators": ["="],
+            "wildCardAllowed": false,
+            "description": "Search for a the email address of a user."
+        }]
+    }]
+}
