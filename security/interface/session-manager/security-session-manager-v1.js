@@ -1,9 +1,24 @@
 /* jshint -W097 */
 /* jshint node:true */
 
-SecuritySessionManager = function() {};
+SecuritySessionManager = function() {
 
-SecuritySessionManager.prototype.createSessionId = function() {};
-SecuritySessionManager.prototype.authenticate = function() {};
-SecuritySessionManager.prototype.removeSessionId = function() {};
-SecuritySessionManager.prototype.refreshSessionId = function(sessionId) {};
+    this.sessions = {};
+
+    function createSessionId() {}
+
+    function authenticate() {}
+
+    function removeSessionId() {}
+
+    function refreshSessionId(sessionId) {}
+
+    return {
+        create: createSessionId,
+        authenticate: authenticate,
+        remove: removeSessionId,
+        refresh: refreshSessionId
+    };
+};
+
+module.exports = SecuritySessionManager;
