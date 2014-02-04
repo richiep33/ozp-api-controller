@@ -24,6 +24,7 @@ as well as folder watches to dynamically load plugins.
 13. Enforcement of parameter body versus URI parameters.
 14. Enforcement of 'Content-Type' globally.
 15. Assessment and attachment of system metadata to response.
+16. Integrated security with pluggable authentication methods (user/pass, OAuth2, etc)
 
 ## Contact Us
 1. Facebook: https://www.facebook.com/ozoneplatform
