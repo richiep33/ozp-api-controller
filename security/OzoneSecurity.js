@@ -54,10 +54,9 @@ var OzoneSecurity = (function(options) {
         for (var pluginIter = 0; pluginIter < securityImplementations.length; pluginIter++) {
             if (type === securityImplementations[pluginIter]) {
                 var path = __dirname + '/plugins/' + type + '/api/' + implementation;
-                plugin = require(path);
+                plugin = require(path)();
             }
         }
-
         // Error if plugin is undefined, something went wrong.
         if (!plugin) throw "Unable to create authentication service";
         return plugin;
