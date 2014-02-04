@@ -1,4 +1,4 @@
-'use strict';
+/* jshint -W097 */
 
 /**
  * OZONE Platform API Controller
@@ -7,11 +7,13 @@
  *
  * @constructor
  */
-var OzonePlatformApiController = function () {
-    var express = require('express'), server, port, options = {};
+var OzonePlatformApiController = function() {
+    var express = require('express'),
+        server, port, options = {};
 
     // Define options and plugins tracking for scope.
-    this.options = {}; this.plugins = {};
+    this.options = {};
+    this.plugins = {};
     this.nodePlugins = {
         os: require('os'),
         fs: require('fs'),
@@ -63,8 +65,7 @@ var OzonePlatformApiController = function () {
             'Failure',
             'error'
         );
-    }
-    else {
+    } else {
         this.generateAuditEntry(
             'OzonePlatformApiController',
             'constructor',
@@ -115,8 +116,7 @@ var OzonePlatformApiController = function () {
         try {
             this.options.key = this.config.server.sslPrivateKey;
             this.options.cert = this.config.server.sslCertificate;
-        }
-        catch (exception) {
+        } catch (exception) {
             // Log configuration failure.
             this.generateAuditEntry(
                 'OzonePlatformApiController',
@@ -207,7 +207,7 @@ OzonePlatformApiController.prototype.loadApiPlugins = function(location) {
         try {
             // Retrieve path from API plugin folder and inject.
             var pluginUri = this.config.apiPlugins.folder + '/' + plugins[pluginIter] + '/manifest.json';
-            var plugin = require(pluginUri);
+            plugin = require(pluginUri);
 
             this.generateAuditEntry(
                 'OzonePlatformApiController',
@@ -286,8 +286,7 @@ OzonePlatformApiController.prototype.loadApiPlugins = function(location) {
                     );
                 }
             }
-        }
-        catch (exception) {
+        } catch (exception) {
             this.generateAuditEntry(
                 'OzonePlatformApiController',
                 'loadApiPlugins',
@@ -310,11 +309,11 @@ OzonePlatformApiController.prototype.loadApiPlugins = function(location) {
  */
 OzonePlatformApiController.prototype.generateAuditEntry = function(fnName, method, msg, status, statusType) {
     var msgType = {
-        error: this.nodePlugins.clc.red,                      // red
-        warning: this.nodePlugins.clc.xterm(178).bgXterm(0),  // orange
-        info: this.nodePlugins.clc.blue,                      // blue
-        status: this.nodePlugins.clc.magenta,                 // magenta
-        success: this.nodePlugins.clc.green                   // green
+        error: this.nodePlugins.clc.red, // red
+        warning: this.nodePlugins.clc.xterm(178).bgXterm(0), // orange
+        info: this.nodePlugins.clc.blue, // blue
+        status: this.nodePlugins.clc.magenta, // magenta
+        success: this.nodePlugins.clc.green // green
     };
 
     console.log(
@@ -329,7 +328,9 @@ OzonePlatformApiController.prototype.generateAuditEntry = function(fnName, metho
 };
 
 OzonePlatformApiController.prototype.generateResponse = function(request, response) {
-    var reservedParameters = {}, queryParameters = [], globalParameters = [], parameter, valueIter;
+    var reservedParameters = {}, queryParameters = [],
+        globalParameters = [],
+        parameter, valueIter;
     var underscore = this.controller.nodePlugins.underscore;
 
     // Start the timing routine.
@@ -384,8 +385,6 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
         results: apiResponse.results
     };
 
-    // @TODO : Need to deconflict multiple reserved parameters.
-
     // Must always check format, even if not present.
     reservedParameters.format = reservedParameters.format || this.controller.reservedParameters.format;
 
@@ -415,12 +414,12 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
 
     // Determine content type from 'format=*' parameter and format.
     // Defaults to JSON in the event of an unrecognized type.
-    var formattedResponse;
+    var formattedResponse, producer;
 
     switch (reservedParameters.format.value) {
         case ('json'):
             response.set('Content-Type', 'application/json');
-            var producer = this.controller.nodePlugins.underscore.bind(
+            producer = this.controller.nodePlugins.underscore.bind(
                 this.controller.jsonProducer,
                 this.controller
             );
@@ -428,7 +427,7 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
             break;
         case ('xml'):
             response.set('Content-Type', 'text/xml');
-            var producer = this.controller.nodePlugins.underscore.bind(
+            producer = this.controller.nodePlugins.underscore.bind(
                 this.controller.xmlProducer,
                 this.controller
             );
@@ -438,14 +437,13 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
             response.set('Content-Type', 'text/html');
             if (reservedParameters.enumerate) {
                 if (reservedParameters.enumerate.value) {
-                    var producer = this.controller.nodePlugins.underscore.bind(
+                    producer = this.controller.nodePlugins.underscore.bind(
                         this.controller.htmlEnumerationProducer,
                         this.controller
                     );
                 }
-            }
-            else {
-                var producer = this.controller.nodePlugins.underscore.bind(
+            } else {
+                producer = this.controller.nodePlugins.underscore.bind(
                     this.controller.htmlProducer,
                     this.controller
                 );
@@ -455,7 +453,7 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
         case ('csv'):
             response.set('Content-Type', 'text/csv');
             response.set('Content-Disposition', 'attachment;filename=ozone-services-request.csv');
-            var producer = this.controller.nodePlugins.underscore.bind(
+            producer = this.controller.nodePlugins.underscore.bind(
                 this.controller.csvProducer,
                 this.controller
             );
@@ -463,7 +461,7 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
             break;
         default:
             response.set('Content-Type', 'application/json');
-            var producer = this.controller.nodePlugins.underscore.bind(
+            producer = this.controller.nodePlugins.underscore.bind(
                 this.controller.jsonProducer,
                 this.controller
             );
@@ -498,7 +496,7 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
     );
 };
 
-OzonePlatformApiController.prototype.injectEnumerationMetadata = function (parameter, metadata, request) {
+OzonePlatformApiController.prototype.injectEnumerationMetadata = function(parameter, metadata, request) {
     // Base information.
     var enumeration = {
         plugin: metadata.informational.plugin,
@@ -557,10 +555,11 @@ OzonePlatformApiController.prototype.injectEnumerationMetadata = function (param
  * @param  {Object} httpRequest Express callback-driven request function
  * @return {Object}             Request metadata information object
  */
-OzonePlatformApiController.prototype.injectRequestMetadata = function (parameter, query, global, httpRequest) {
+OzonePlatformApiController.prototype.injectRequestMetadata = function(parameter, query, global, httpRequest) {
     // Did user ask to see request metadata?
+    var responseObject;
     if (parameter.value === 'true') {
-        var responseObject = {
+        responseObject = {
             request: {
                 viaAjax: httpRequest.xhr,
                 os: httpRequest.useragent.OS,
@@ -586,10 +585,11 @@ OzonePlatformApiController.prototype.injectRequestMetadata = function (parameter
  * @param  {Date}   end       Date after API plugin function
  * @return {Object}           Performance metadata information object
  */
-OzonePlatformApiController.prototype.injectPerformanceMetadata = function (parameter, start, end) {
+OzonePlatformApiController.prototype.injectPerformanceMetadata = function(parameter, start, end) {
     // Did user ask to see performance metadata?
+    var responseObject;
     if (parameter.value === 'true') {
-        var responseObject = {
+        responseObject = {
             performance: {
                 requestTimeSeconds: (end - start) / 1000,
                 requestStarted: start,
@@ -608,10 +608,11 @@ OzonePlatformApiController.prototype.injectPerformanceMetadata = function (param
  * @param  {Object} os        NodeJS operating system module
  * @return {Object}           System metadata information object
  */
-OzonePlatformApiController.prototype.injectSystemMetadata = function (parameter, os) {
+OzonePlatformApiController.prototype.injectSystemMetadata = function(parameter, os) {
     // Did user ask to see system metadata?
+    var responseObject;
     if (parameter.value === 'true') {
-        var responseObject = {
+        responseObject = {
             system: {
                 proc: os.cpus().length,
                 server: os.hostname(),
@@ -631,7 +632,8 @@ OzonePlatformApiController.prototype.injectSystemMetadata = function (parameter,
  * @return {Array}       CSV-formatted and concatenated string from results set only
  */
 OzonePlatformApiController.prototype.csvProducer = function(json) {
-    var recordIter, rows = [], headers = {};
+    var recordIter, rows = [],
+        headers = {};
     for (recordIter = 0; recordIter < json.results.length; recordIter++) {
         var row = [];
         var keys = this.nodePlugins.underscore.keys(json.results[recordIter]);
@@ -656,17 +658,25 @@ OzonePlatformApiController.prototype.xmlProducer = function(json) {
     return this.nodePlugins.js2xmlparser('response', json);
 };
 
-OzonePlatformApiController.prototype.htmlEnumerationProducer = function (json) {
+OzonePlatformApiController.prototype.htmlEnumerationProducer = function(json) {
     // Define variables and alias the needed plugins.
-    var html = [], handlebars = this.nodePlugins.handlebars,
-        fs = this.nodePlugins.fs, underscore = this.nodePlugins.underscore;
+    var html = [],
+        handlebars = this.nodePlugins.handlebars,
+        fs = this.nodePlugins.fs,
+        underscore = this.nodePlugins.underscore;
 
     // Load the HTML response view template.
-    var view = fs.readFileSync('./views/enumeration.html', {encoding: 'utf-8'});
+    var view = fs.readFileSync('./views/enumeration.html', {
+        encoding: 'utf-8'
+    });
 
     // Register the partial handlers for compilation.
-    handlebars.registerPartial('enum-options', fs.readFileSync('./partials/enumoptions.partial', {encoding: 'utf-8'}));
-    handlebars.registerPartial('enum-params', fs.readFileSync('./partials/enumparams.partial', {encoding: 'utf-8'}));
+    handlebars.registerPartial('enum-options', fs.readFileSync('./partials/enumoptions.partial', {
+        encoding: 'utf-8'
+    }));
+    handlebars.registerPartial('enum-params', fs.readFileSync('./partials/enumparams.partial', {
+        encoding: 'utf-8'
+    }));
     handlebars.registerHelper('compare', this.comparisonHelper);
     handlebars.registerHelper('capitalize', this.capitalizeHelper);
 
@@ -685,17 +695,29 @@ OzonePlatformApiController.prototype.htmlEnumerationProducer = function (json) {
  */
 OzonePlatformApiController.prototype.htmlProducer = function(json) {
     // Define variables and alias the needed plugins.
-    var html = [], handlebars = this.nodePlugins.handlebars,
-        fs = this.nodePlugins.fs, underscore = this.nodePlugins.underscore;
+    var html = [],
+        handlebars = this.nodePlugins.handlebars,
+        fs = this.nodePlugins.fs,
+        underscore = this.nodePlugins.underscore;
 
     // Load the HTML response view template.
-    var view = fs.readFileSync('./views/response.html', {encoding: 'utf-8'});
+    var view = fs.readFileSync('./views/response.html', {
+        encoding: 'utf-8'
+    });
 
     // Register the partial handlers for compilation.
-    handlebars.registerPartial('performance', fs.readFileSync('./partials/performance.partial', {encoding: 'utf-8'}));
-    handlebars.registerPartial('system', fs.readFileSync('./partials/system.partial', {encoding: 'utf-8'}));
-    handlebars.registerPartial('request', fs.readFileSync('./partials/request.partial', {encoding: 'utf-8'}));
-    handlebars.registerPartial('query', fs.readFileSync('./partials/query.partial', {encoding: 'utf-8'}));
+    handlebars.registerPartial('performance', fs.readFileSync('./partials/performance.partial', {
+        encoding: 'utf-8'
+    }));
+    handlebars.registerPartial('system', fs.readFileSync('./partials/system.partial', {
+        encoding: 'utf-8'
+    }));
+    handlebars.registerPartial('request', fs.readFileSync('./partials/request.partial', {
+        encoding: 'utf-8'
+    }));
+    handlebars.registerPartial('query', fs.readFileSync('./partials/query.partial', {
+        encoding: 'utf-8'
+    }));
     handlebars.registerHelper('compare', this.comparisonHelper);
 
     // Register the data table helper.
@@ -724,24 +746,24 @@ OzonePlatformApiController.prototype.jsonProducer = function(json) {
 
 OzonePlatformApiController.prototype.comparisonHelper = function(v1, op, v2, options) {
     var c = {
-      "eq": function(v1, v2) {
-          return v1 == v2;
-      },
-      "neq": function(v1, v2) {
-          return v1 != v2;
-      },
-      "gt": function(v1, v2) {
-          return v1 > v2;
-      },
-      "lt": function(v1, v2) {
-          return v1 < v2;
-      }
+        "eq": function(v1, v2) {
+            return v1 == v2;
+        },
+        "neq": function(v1, v2) {
+            return v1 != v2;
+        },
+        "gt": function(v1, v2) {
+            return v1 > v2;
+        },
+        "lt": function(v1, v2) {
+            return v1 < v2;
+        }
     };
 
     if (Object.prototype.hasOwnProperty.call(c, op)) {
         return c[op].call(this, v1, v2) ? options.fn(this) : options.inverse(this);
     }
-    return options.inverse( this );
+    return options.inverse(this);
 };
 
 OzonePlatformApiController.prototype.capitalizeHelper = function(word) {
@@ -755,7 +777,7 @@ OzonePlatformApiController.prototype.capitalizeHelper = function(word) {
  * @param  {Object} options Handlebar options for the helper
  * @return {String}         Concatenated string of the HTML fragment
  */
-OzonePlatformApiController.prototype.dataTableTemplateHelper = function (items, options) {
+OzonePlatformApiController.prototype.dataTableTemplateHelper = function(items, options) {
     // Default Bootstrap classes for table.
     var out = '<table class="table table-striped table-hover table-bordered">';
 
@@ -767,7 +789,7 @@ OzonePlatformApiController.prototype.dataTableTemplateHelper = function (items, 
     }
 
     for (var keyIter = 0; keyIter < keys.length; keyIter++) {
-        out += '<th>' + keys[keyIter] + '</th>'
+        out += '<th>' + keys[keyIter] + '</th>';
     }
     out += '</tr>';
 
@@ -776,7 +798,7 @@ OzonePlatformApiController.prototype.dataTableTemplateHelper = function (items, 
         out += '<tr>';
         for (keyIter = 0; keyIter < keys.length; keyIter++) {
             var key = keys[keyIter];
-            out += '<td>' + items[i][key] + '</td>'
+            out += '<td>' + items[i][key] + '</td>';
         }
         out += '</tr>';
     }
