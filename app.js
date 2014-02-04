@@ -330,6 +330,12 @@ OzonePlatformApiController.prototype.generateAuditEntry = function(fnName, metho
     );
 };
 
+/**
+ * Generates the user's response object for HTTP transmission through Express middleware.
+ *
+ * @param  {Object} request  Express request object
+ * @param  {Object} response Express response object
+ */
 OzonePlatformApiController.prototype.generateResponse = function(request, response) {
     var reservedParameters = {}, queryParameters = [],
         globalParameters = [],
@@ -499,6 +505,14 @@ OzonePlatformApiController.prototype.generateResponse = function(request, respon
     );
 };
 
+/**
+ * Injects enumeration data for formatting to the response.
+ *
+ * @param  {Object} parameter Passed parameter
+ * @param  {Object} metadata  Manifest-based configuration object for the service endpoint
+ * @param  {Object} request   Express request object.
+ * @return {Object}           Formatted enumeration object for rendering
+ */
 OzonePlatformApiController.prototype.injectEnumerationMetadata = function(parameter, metadata, request) {
     // Base information.
     var enumeration = {
@@ -747,6 +761,15 @@ OzonePlatformApiController.prototype.jsonProducer = function(json) {
     return json;
 };
 
+/**
+ * Acts as a comparison helper for Handlebars templates.
+ *
+ * @param  {Object} v1      Dynamically-typed left-hand value for comparison
+ * @param  {String} op      Comparison operator
+ * @param  {Object} v2      Dynamically-typed right hand value for comparison
+ * @param  {Object} options Handlebars optional functions
+ * @return {Boolean}        Boolean value of comparison
+ */
 OzonePlatformApiController.prototype.comparisonHelper = function(v1, op, v2, options) {
     var c = {
         "eq": function(v1, v2) {
@@ -763,12 +786,19 @@ OzonePlatformApiController.prototype.comparisonHelper = function(v1, op, v2, opt
         }
     };
 
+    // Assign operators to comparison.
     if (Object.prototype.hasOwnProperty.call(c, op)) {
         return c[op].call(this, v1, v2) ? options.fn(this) : options.inverse(this);
     }
     return options.inverse(this);
 };
 
+/**
+ * Capitalizes word passed for Handlebars templates.
+ *
+ * @param  {String} word String to be capitalized
+ * @return {String}      Capitalized string
+ */
 OzonePlatformApiController.prototype.capitalizeHelper = function(word) {
     return word.charAt(0).toUpperCase() + word.slice(1);
 };
@@ -791,6 +821,7 @@ OzonePlatformApiController.prototype.dataTableTemplateHelper = function(items, o
         keys.push(k);
     }
 
+    // Add all of the table headers from keys.
     for (var keyIter = 0; keyIter < keys.length; keyIter++) {
         out += '<th>' + keys[keyIter] + '</th>';
     }
@@ -811,4 +842,5 @@ OzonePlatformApiController.prototype.dataTableTemplateHelper = function(items, o
     return out;
 };
 
+// Create a new API instance.
 var api = new OzonePlatformApiController();
