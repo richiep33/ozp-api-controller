@@ -1,4 +1,7 @@
 /* jshint -W097 */
+/* jshint node:true */
+
+"use strict";
 
 /**
  * OZONE Platform API Controller
