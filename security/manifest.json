@@ -19,6 +19,14 @@
     },
     "resources": [{
         "version": "1",
+        "route": "login",
+        "view": "login.html",
+        "httpMethods": [{
+            "httpMethod": "GET",
+            "function": "login"
+        }],
+    }, {
+        "version": "1",
         "route": "user",
         "httpMethods": [{
             "httpMethod": "GET",
