@@ -151,6 +151,10 @@ var OzonePlatformApiController = function() {
             forceErrorRedirect: this.config.security.forceErrorRedirect || false
         });
 
+        // Init the cookie session handler for Express.
+        this.app.use(express.cookieParser(new Date().toString()));
+        this.app.use(express.cookieSession());
+
         this.generateAuditEntry(
             'OzonePlatformApiController',
             'constructor',
