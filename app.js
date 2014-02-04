@@ -140,6 +140,34 @@ var OzonePlatformApiController = function() {
         'info'
     );
 
+    // Instanciate the security interface.
+    try {
+        // Instanciate the security interface.
+        this.security = require(__dirname + '/security/OzoneSecurity.js')({
+            version: 1,
+            type: 'userpass',
+            implementation: 'security-userpass-v1.js',
+            manifest: require(__dirname + '/security/manifest.json'),
+            forceErrorRedirect: this.config.security.forceErrorRedirect || false
+        });
+
+        this.generateAuditEntry(
+            'OzonePlatformApiController',
+            'constructor',
+            'OZONE Security Interface',
+            'Started the security services',
+            'success'
+        );
+    } catch (exception) {
+        this.generateAuditEntry(
+            'OzonePlatformApiController',
+            'constructor',
+            'OZONE Security Interface',
+            'Unable to start the security services',
+            'error'
+        );
+    }
+
     // Load API plugins from file system and assign routes.
     this.plugins = this.loadApiPlugins(this.config.apiPlugins.folder);
 
