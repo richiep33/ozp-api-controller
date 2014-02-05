@@ -5,6 +5,8 @@
 
 var events = require('events');
 var express = require('express');
+var clc = require('cli-color');
+var moment = require('moment');
 
 // OZONE-specific dependencies.
 var PluginLoader = require('./src/PluginLoader');
@@ -40,8 +42,8 @@ var OzonePlatformApiController = function() {
     this.on('log', this.queueLogEntry);
     this.on('httpoptions', this.configureServer);
     this.on('plugins', this.configurePluginLoader);
+    this.on('start', this.startWebServer);
     //this.on('secure', this.enableSecurityInterface);
-    //this.on('plugins', this.loadPlugins);
     //this.on('format', this.formatResponse);
     //this.on('parameters', this.parseParameters);
     //this.on('request', this.parseHttpRequest);
@@ -120,10 +122,6 @@ OzonePlatformApiController.prototype.configureServer = function(configuration) {
         if (configuration.server.useSSL) {
             this.sslOptions = this.determineSSLKeys(configuration.server);
         }
-
-        // Fire event to load plugins.
-        this.emit('plugins', this.app, configuration.plugins, configuration.api);
-
     }
     // Something went wrong. Run the installer for clean configuration.
     catch (exception) {
@@ -139,17 +137,47 @@ OzonePlatformApiController.prototype.configureServer = function(configuration) {
         });
         this.emit('install');
     }
+
+    // Fire event to load plugins.
+    this.emit('plugins', this.app, configuration.plugins, configuration.api);
+};
+
+OzonePlatformApiController.prototype.pluginsLoaded = function() {
+    // Log that we are finished with plugins.
+    this.emit('log', {
+        user: 'system',
+        dtg: new Date(),
+        module: 'OzonePlatformApiController',
+        method: 'pluginsLoaded',
+        action: 'Loaded All Plugins',
+        msg: 'Plugins are loaded; server is being created',
+        type: 'info'
+    });
+
+    // Start the web server.
+    this.emit('start', {
+        middleware: this.app,
+        protocol: this.protocol,
+        port: this.port,
+        sslOptions: this.sslOptions
+    });
 };
 
 OzonePlatformApiController.prototype.configurePluginLoader = function(middleware, pluginOptions, apiOptions) {
     // Create the plugin loader and configure at instanciation.
-    this.pluginLoader = new PluginLoader(middleware, pluginOptions, apiOptions);
+    this.pluginLoader = new PluginLoader(middleware, pluginOptions, apiOptions, this.processIncomingRequest.bind(this));
 
     // Assign plugin loader event handlers.
     this.pluginLoader.on('log', this.queueLogEntry);
 
-    // Tell plugin loader to start doing its thing.
+    this.pluginLoader.on('ready', this.pluginsLoaded.bind(this));
+
+    // Tell plugin loader to start loading external API plugins..
     this.pluginLoader.emit('load', pluginOptions.folder);
+
+    // @TODO Tell plugin loader to load the integrated security plugin.
+
+    // @TODO Tell plugin loader to load the integrated configuration plugin.
 };
 
 OzonePlatformApiController.prototype.assignWebServer = function(useSSL) {
@@ -157,31 +185,41 @@ OzonePlatformApiController.prototype.assignWebServer = function(useSSL) {
     return server;
 };
 
-OzonePlatformApiController.prototype.initializeWebServer = function(middleware, protocol, sslOptions) {
+OzonePlatformApiController.prototype.startWebServer = function(configObject) {
     // Start up the NodeJS web server of appropriate type.
     try {
         // SSL is enabled. Create a NodeJS HTTPS server.
-        if (protocol === 'HTTPS') {
-            this.server.createServer(sslOptions, middleware).listen(middleware.get('port'), this.createServerNotification.bind(this));
+        if (configObject.protocol === 'HTTPS') {
+            this.webServer.createServer(
+                configObject.sslOptions,
+                configObject.middleware
+            ).listen(configObject.middleware.get('port'), this.createServerNotification.bind(this));
         }
         // SSL is not enabled. Create a NodeJS HTTP server.
         else {
-            this.server.createServer(this.app).listen(this.app.get('port'), this.createServerNotification.bind(this));
+            this.webServer.createServer(
+                configObject.middleware
+            ).listen(configObject.middleware.get('port'), this.createServerNotification.bind(this));
         }
     }
+    //
     // Unable to create the web server. Log the event.
     catch (exception) {
         this.emit('log', {
             user: 'system',
             dtg: new Date(),
             module: 'OzonePlatformApiController',
-            method: 'initializeWebServer',
+            method: 'startWebServer',
             action: 'Create Web Server',
-            msg: protocol + ' web server was not able to start',
+            msg: configObject.protocol + ' web server was not able to start',
             exception: exception,
             type: 'failure'
         });
     }
+};
+
+OzonePlatformApiController.prototype.processIncomingRequest = function(request, response) {
+    // @TODO Parse request and execute API function.
 };
 
 /**
@@ -192,9 +230,9 @@ OzonePlatformApiController.prototype.createServerNotification = function() {
         user: 'system',
         dtg: new Date(),
         module: 'OzonePlatformApiController',
-        method: 'initializeWebServer',
+        method: 'startWebServer',
         action: 'Create Web Server',
-        msg: 'Web server was started',
+        msg: this.protocol + ' server was started on :' + this.port,
         type: 'success'
     });
 };
@@ -234,7 +272,24 @@ OzonePlatformApiController.prototype.determineSSLKeys = function(serverConfigura
  * @param  {Object} eventObject Object containing logging-specific information about the event
  */
 OzonePlatformApiController.prototype.queueLogEntry = function(eventObject) {
-    console.log(eventObject);
+    var msgType = {
+        failure: clc.red, // red
+        warning: clc.xterm(178).bgXterm(0), // orange
+        info: clc.blue, // blue
+        status: clc.magenta, // magenta
+        success: clc.green // green
+    };
+
+    // Reference the event DTG as a Moment object.
+    var momentdtg = moment(eventObject.dtg);
+
+    // For now, send the log to the console. @TODO Pass these events off to the logger.
+    console.log(
+        msgType[eventObject.type]('[' + eventObject.type.substr(0, 1) + ']') +
+        ' @ ' + clc.cyan(momentdtg.format('YYYYMMDDHHmmssSSS')) +
+        ' -- ' + clc.yellow(eventObject.module + '::' + eventObject.method + '()') +
+        ' -- ' + clc.blue(eventObject.action) + ' --> ' + eventObject.msg
+    );
 };
 
 
