@@ -24,5 +24,6 @@
         "know-your-http-well": "~0.1.5",
         "cuid": "~1.2.1"
         "watchr": "~2.4.9"
+        "moment": "~2.5.1"
     }
 }
