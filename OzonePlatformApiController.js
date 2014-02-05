@@ -6,6 +6,9 @@
 var events = require('events');
 var express = require('express');
 
+// OZONE-specific dependencies.
+var PluginLoader = require('./src/PluginLoader');
+
 /**
  * OZONE Platform API Controller
  *
@@ -26,13 +29,17 @@ var OzonePlatformApiController = function() {
     // Placeholder for created HTTP or HTTPS web server.
     this.webServer = null;
 
+    // Placeholder for plugin loader;
+    this.pluginLoader = null;
+
     // Assign EventEmitter to API Controller.
     events.EventEmitter.call(this);
 
-    // Assign event handlers.
+    // Assign master event handlers.
     this.on('created', this.loadConfiguration);
     this.on('log', this.queueLogEntry);
     this.on('httpoptions', this.configureServer);
+    this.on('plugins', this.configurePluginLoader);
     //this.on('secure', this.enableSecurityInterface);
     //this.on('plugins', this.loadPlugins);
     //this.on('format', this.formatResponse);
@@ -45,7 +52,7 @@ var OzonePlatformApiController = function() {
 };
 
 // Extend the API Controller from EventEmitter.
-OzonePlatformApiController.prototype.__proto__ = events.EventEmitter.prototype;
+OzonePlatformApiController.prototype = events.EventEmitter.prototype;
 
 /**
  * Attempts to load the APi controller configuration from the file system.
@@ -65,8 +72,9 @@ OzonePlatformApiController.prototype.loadConfiguration = function(configurationP
             type: 'success'
         });
         this.emit('httpoptions', configuration);
-        // Configuration was not present. Start the installer.
-    } catch (exception) {
+    }
+    // Configuration was not present. Start the installer.
+    catch (exception) {
         this.emit('install');
     }
 };
@@ -113,6 +121,9 @@ OzonePlatformApiController.prototype.configureServer = function(configuration) {
             this.sslOptions = this.determineSSLKeys(configuration.server);
         }
 
+        // Fire event to load plugins.
+        this.emit('plugins', this.app, configuration.plugins, configuration.api);
+
     }
     // Something went wrong. Run the installer for clean configuration.
     catch (exception) {
@@ -130,6 +141,17 @@ OzonePlatformApiController.prototype.configureServer = function(configuration) {
     }
 };
 
+OzonePlatformApiController.prototype.configurePluginLoader = function(middleware, pluginOptions, apiOptions) {
+    // Create the plugin loader and configure at instanciation.
+    this.pluginLoader = new PluginLoader(middleware, pluginOptions, apiOptions);
+
+    // Assign plugin loader event handlers.
+    this.pluginLoader.on('log', this.queueLogEntry);
+
+    // Tell plugin loader to start doing its thing.
+    this.pluginLoader.emit('load', pluginOptions.folder);
+};
+
 OzonePlatformApiController.prototype.assignWebServer = function(useSSL) {
     var server = useSSL ? require('https') : require('http');
     return server;
@@ -140,11 +162,11 @@ OzonePlatformApiController.prototype.initializeWebServer = function(middleware, 
     try {
         // SSL is enabled. Create a NodeJS HTTPS server.
         if (protocol === 'HTTPS') {
-            this.server.createServer(sslOptions, middleware).listen(middleware.get('port'), this.handler.handler_CreateServer.bind(this));
+            this.server.createServer(sslOptions, middleware).listen(middleware.get('port'), this.createServerNotification.bind(this));
         }
         // SSL is not enabled. Create a NodeJS HTTP server.
         else {
-            this.server.createServer(this.app).listen(this.app.get('port'), this.handler.handler_CreateServer.bind(this));
+            this.server.createServer(this.app).listen(this.app.get('port'), this.createServerNotification.bind(this));
         }
     }
     // Unable to create the web server. Log the event.
@@ -165,7 +187,7 @@ OzonePlatformApiController.prototype.initializeWebServer = function(middleware, 
 /**
  * A callback for NodeJS HTTP(S) server when created. Logs event success.
  */
-OzonePlatformApiController.prototype.handler_CreateServer = function() {
+OzonePlatformApiController.prototype.createServerNotification = function() {
     this.emit('log', {
         user: 'system',
         dtg: new Date(),
