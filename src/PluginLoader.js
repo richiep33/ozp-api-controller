@@ -353,6 +353,7 @@ PluginLoader.prototype.assignRoute = function(routeObject) {
         this.emit('save', {
             plugin: routeObject.plugin,
             api: instance,
+            route: routeObject.uri,
             method: routeObject.method.httpMethod,
             apiFn: routeObject.method['function']
         });
@@ -398,24 +399,26 @@ PluginLoader.prototype.assignRoute = function(routeObject) {
  * @param {Object}   pluginObject        Object containing plugin information
  * @param {String}   pluginObject.plugin Name of the plugin
  * @param {Function} pluginObject.api    Plugin API instance
+ * @param {String}   pluginObject.route  RESTful route of plugin
  * @param {String}   pluginObject.method HTTP method
  * @param {String}   pluginObject.apiFn  Name of the plugin API handler
  */
 PluginLoader.prototype.savePlugin = function(pluginObject) {
     // Alias the plugin name.
-    var plugin = pluginObject.plugin;
+    var route = pluginObject.route;
 
     // Has this plugin been persisted?
-    if (!this.plugins[plugin]) {
+    if (!this.plugins[route]) {
         var saved = {
+            plugin: pluginObject.plugin,
             api: pluginObject.api
         };
         saved[pluginObject.method] = pluginObject.apiFn;
-        this.plugins[plugin] = saved;
+        this.plugins[route] = saved;
     }
     // Otherwise just save the assigned HTTP method function from the API.
     else {
-        this.plugins[plugin][pluginObject.method] = pluginObject.apiFn;
+        this.plugins[route][pluginObject.method] = pluginObject.apiFn;
     }
 
     // Log persistence.
@@ -425,7 +428,7 @@ PluginLoader.prototype.savePlugin = function(pluginObject) {
         module: 'PluginLoader',
         method: 'savePlugin',
         action: 'Persisting API Plugin',
-        msg: 'Persisted API plugin ' + plugin + ' for ' + pluginObject.method,
+        msg: 'Persisted API plugin ' + pluginObject.plugin + ' for ' + pluginObject.method,
         type: 'success'
     });
 };
@@ -448,6 +451,10 @@ PluginLoader.prototype.parsePluginLocation = function(error, files) {
     }
     // Send the list of parsed plugins for creation.
     this.emit('read', pluginFolders, this.pluginLocation);
+};
+
+PluginLoader.prototype.get = function(route) {
+    return this.plugins[route];
 };
 
 // Export the plugin loader.
