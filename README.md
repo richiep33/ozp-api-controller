@@ -31,7 +31,7 @@ as well as folder watches to dynamically load plugins.
 The server configuration needs to be located in 'config/config.json'. The properties listed
 below are required for the service to operate:
 
-<code>
+```json
 {
     "api": {
         "serviceRoot": "/ozone/"
@@ -54,7 +54,7 @@ below are required for the service to operate:
         }
     }
 }
-</code>
+```
 
 ## Contact Us
 1. Facebook: https://www.facebook.com/ozoneplatform
