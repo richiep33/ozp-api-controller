@@ -1,0 +1,22 @@
+{
+    "performance": {
+        "type": "boolean",
+        "defaultValue": false
+    },
+    "format": {
+        "type": "string",
+        "defaultValue": "json"
+    },
+    "system": {
+        "type": "boolean",
+        "defaultValue": false
+    },
+    "request": {
+        "type": "boolean",
+        "defaultValue": false
+    },
+    "enumerate": {
+        "type": "boolean",
+        "defaultValue": false
+    }
+}
