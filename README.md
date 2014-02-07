@@ -26,6 +26,36 @@ as well as folder watches to dynamically load plugins.
 15. Assessment and attachment of system metadata to response.
 16. Integrated security with pluggable authentication methods (user/pass, OAuth2, etc)
 
+## Configuration
+
+The server configuration needs to be located in 'config/config.json'. The properties listed
+below are required for the service to operate:
+
+<code>
+{
+    "api": {
+        "serviceRoot": "/ozone/"
+    },
+    "server": {
+        "useSSL": false,
+        "securePort": 8443,
+        "insecurePort": 8080,
+        "sslPrivateKey": "/{YOUR FOLDER}/server.key",
+        "sslCertificate": "/{YOUR FOLDER}/server.crt"
+    },
+    "plugins": {
+        "watch": true,
+        "folder": "/{YOUR FOLDER}/ozp-api-plugins"
+    },
+    "headers": {
+        "cors": {
+            "enable": true,
+            "whitelist": "*"
+        }
+    }
+}
+</code>
+
 ## Contact Us
 1. Facebook: https://www.facebook.com/ozoneplatform
 2. Twitter Stream: https://twitter.com/ozoneplatform
