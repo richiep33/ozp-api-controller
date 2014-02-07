@@ -431,7 +431,7 @@ OzonePlatformApiController.prototype.parseRequestParameters = function(parameter
                     key: parameter,
                     op: '=',
                     value: aggregation[parameter]
-                }
+                };
             }
             parameters.push(obj);
         }
