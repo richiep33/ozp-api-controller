@@ -31,6 +31,9 @@ var PluginLoader = function(middleware, pluginOptions, apiOptions, requestFn) {
     // Assign storage for plugins.
     this.plugins = {};
 
+    // Assign storage for manifests.
+    this.manifests = {};
+
     // Although this shouldn't happen, ensure we can read the folder property.
     if (!pluginOptions.folder) {
         this.emit('log', {
@@ -287,6 +290,7 @@ PluginLoader.prototype.processServiceResources = function(plugin, manifest, serv
             for (methodIter; methodIter < httpMethods.length; methodIter++) {
                 this.emit('route', {
                     plugin: plugin,
+                    manifest: manifest,
                     method: httpMethods[methodIter],
                     uri: serviceUri + routeUri,
                     requestFn: this.requestFn,
@@ -326,6 +330,7 @@ PluginLoader.prototype.processServiceResources = function(plugin, manifest, serv
  * @event decrement
  * @param {Object}   routeObject                Object containing route information
  * @param {String}   routeObject.plugin         Name of the plugin
+ * @param {String}   routeObject.manifest       Plugin configuration manifest
  * @param {Object}   routeObject.method         Method object containing HTTP method and API function
  * @param {String}   routeObject.uri            Route URI
  * @param {Function} routeObject.requestFn      Controller request handler
@@ -353,6 +358,7 @@ PluginLoader.prototype.assignRoute = function(routeObject) {
         this.emit('save', {
             plugin: routeObject.plugin,
             api: instance,
+            manifest: routeObject.manifest,
             route: routeObject.uri,
             method: routeObject.method.httpMethod,
             apiFn: routeObject.method['function']
@@ -396,16 +402,21 @@ PluginLoader.prototype.assignRoute = function(routeObject) {
  * Saves the plugin instance and HTTP method accessor.
  *
  * @event log
- * @param {Object}   pluginObject        Object containing plugin information
- * @param {String}   pluginObject.plugin Name of the plugin
- * @param {Function} pluginObject.api    Plugin API instance
- * @param {String}   pluginObject.route  RESTful route of plugin
- * @param {String}   pluginObject.method HTTP method
- * @param {String}   pluginObject.apiFn  Name of the plugin API handler
+ * @param {Object}   pluginObject           Object containing plugin information
+ * @param {String}   pluginObject.plugin    Name of the plugin
+ * @param {Function} pluginObject.api       Plugin API instance
+ * @param {String}   pluginObject.manifest  Plugin configuration manifest
+ * @param {String}   pluginObject.route     RESTful route of plugin
+ * @param {String}   pluginObject.method    HTTP method
+ * @param {String}   pluginObject.apiFn     Name of the plugin API handler
  */
 PluginLoader.prototype.savePlugin = function(pluginObject) {
     // Alias the plugin name.
     var route = pluginObject.route;
+
+    if (!this.manifests[pluginObject.plugin]) {
+        this.manifests[pluginObject.plugin] = pluginObject.manifest;
+    }
 
     // Has this plugin been persisted?
     if (!this.plugins[route]) {
@@ -453,8 +464,24 @@ PluginLoader.prototype.parsePluginLocation = function(error, files) {
     this.emit('read', pluginFolders, this.pluginLocation);
 };
 
+/**
+ * Gets plugin information by route.
+ *
+ * @param  {String} route Requested route
+ * @return {Object}       Plugin configuration and information
+ */
 PluginLoader.prototype.get = function(route) {
     return this.plugins[route];
+};
+
+/**
+ * Gets plugin configuration manifest.
+ *
+ * @param  {String} plugin Name of plugin
+ * @return {Object}        Configuration manifest
+ */
+PluginLoader.prototype.getManifest = function(plugin) {
+    return this.manifests[plugin];
 };
 
 // Export the plugin loader.
