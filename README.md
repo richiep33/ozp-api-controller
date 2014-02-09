@@ -1,6 +1,6 @@
 # OZONE API Controller
 
-## Master RESTful API controller for OZONE services.
+## RESTful API controller for OZONE services.
 
 This controller is used as a central arbiter of RESTful services for OZONE Platform.
 It provides the ability for core RESTful standards to be applied across the
@@ -25,6 +25,10 @@ as well as folder watches to dynamically load plugins.
 14. Enforcement of 'Content-Type' globally.
 15. Assessment and attachment of system metadata to response.
 16. Integrated security with pluggable authentication methods (user/pass, OAuth2, etc)
+
+## Service Plugins
+
+Service plugins are available here: https://github.com/ozone-development/ozp-api-plugins
 
 ## Configuration
 
