@@ -16,8 +16,8 @@ var underscore = require('underscore')._;
 var js2xmlparser = require('js2xmlparser');
 
 // OZONE-specific dependencies.
-var PluginLoader = require('./src/PluginLoader');
-var ParameterHelper = require('./src/ParameterHelper');
+var PluginLoader = require(__dirname + '/PluginLoader');
+var ParameterHelper = require(__dirname + '/ParameterHelper');
 
 /**
  * OZONE Platform API Controller
@@ -27,8 +27,13 @@ var ParameterHelper = require('./src/ParameterHelper');
  * @constructor
  */
 var OzonePlatformApiController = function() {
+    // Determine the root folder of the application.
+    var appPathTokens = __dirname.split('/');
+    appPathTokens.splice(appPathTokens.length - 2, 2);
+    this.appPath = appPathTokens.join('/');
+
     // Set default configuration path.
-    var configurationPath = __dirname + '/config/config.json';
+    var configurationPath = this.appPath + '/config/config.json';
 
     // Express application server.
     this.app = require('express')();
@@ -70,7 +75,7 @@ var OzonePlatformApiController = function() {
     events.EventEmitter.call(this);
 
     // Load reserved parameters.
-    this.reserved = require(__dirname + '/config/reserved.json');
+    this.reserved = require(this.appPath + '/config/reserved.json');
 
     // Assign master event handlers.
     this.on('handlebars', this.configureHandlebars);
@@ -202,7 +207,7 @@ OzonePlatformApiController.prototype.configureServer = function(configuration) {
         this.app.use(express.bodyParser());
 
         // Configure static server content serving.
-        this.app.use(express.static(__dirname + '/public'));
+        this.app.use(express.static(this.appPath + '/public'));
 
         // User agent parsing.
         var useragent = require('express-useragent');

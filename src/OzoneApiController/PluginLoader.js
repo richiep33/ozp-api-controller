@@ -219,7 +219,7 @@ PluginLoader.prototype.loadPluginManifest = function(plugin, location, context) 
             module: 'PluginLoader',
             method: 'loadPluginManifest',
             action: 'Loading Plugin Manifest',
-            msg: 'Found manifest at ' + location,
+            msg: 'Found manifest at ' + location + '/' + plugin,
             type: 'info'
         });
 
