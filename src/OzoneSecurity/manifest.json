@@ -3,31 +3,16 @@
         "required": true,
         "plugin": "ozp-security",
         "name": "OZONE Platform - Security",
-        "description": "Security and authorization services for OZONE."
+        "description": "Authenication and authorization services for OZONE"
     },
     "route": {
-        "uri": "security/",
-        "options": {
-            "cors": {
-                "enable": true,
-                "whitelist": "*"
-            },
-            "csrf": {
-                "enable": true
-            }
-        }
+        "uri": "security/"
     },
     "resources": [{
         "version": "1",
-        "route": "login",
-        "view": "login.html",
-        "httpMethods": [{
-            "httpMethod": "GET",
-            "function": "login"
-        }],
-    }, {
-        "version": "1",
         "route": "user",
+        "implementation": "security-object",
+        "description": "Returns security information relevant to a user or set of users",
         "httpMethods": [{
             "httpMethod": "GET",
             "function": "findUser"
@@ -44,7 +29,7 @@
             "required": [{
                 "method": "GET",
                 "isRequired": false,
-                "administrative": false
+                "administrative": true
             }, {
                 "method": "POST",
                 "isRequired": false,
@@ -63,35 +48,35 @@
             "wildCardAllowed": false,
             "description": "Search for a user by system ID."
         }, {
-            "parameter": "user",
+            "parameter": "alias",
             "type": "string",
             "required": [{
                 "method": "GET",
                 "isRequired": false,
-                "administrative": false
+                "administrative": true
             }, {
                 "method": "POST",
                 "isRequired": false,
                 "administrative": true
             }],
             "examples": [
-                "user=testUser",
-                "user=tes*"
+                "alias=testUser",
+                "alias=tes*"
             ],
             "operators": ["="],
             "wildCardAllowed": true,
-            "description": "Search for a user by alias or name."
+            "description": "Search for a user by alias or given name."
         }, {
             "parameter": "email",
             "type": "email",
             "required": [{
                 "method": "GET",
                 "isRequired": false,
-                "administrative": false
+                "administrative": true
             }, {
                 "method": "POST",
                 "isRequired": true,
-                "administrative": false
+                "administrative": true
             }],
             "examples": [
                 "email=testUser1@company.net"
@@ -99,6 +84,152 @@
             "operators": ["="],
             "wildCardAllowed": false,
             "description": "Search for a the email address of a user."
+        }, {
+            "parameter": "firstname",
+            "type": "string",
+            "required": [{
+                "method": "GET",
+                "isRequired": false,
+                "administrative": true
+            }, {
+                "method": "POST",
+                "isRequired": false,
+                "administrative": true
+            }],
+            "examples": [
+                "firstname=William",
+                "firstname=Sus*"
+            ],
+            "operators": ["="],
+            "wildCardAllowed": true,
+            "description": "Search for a user by first name."
+        }, {
+            "parameter": "lastname",
+            "type": "string",
+            "required": [{
+                "method": "GET",
+                "isRequired": false,
+                "administrative": true
+            }, {
+                "method": "POST",
+                "isRequired": false,
+                "administrative": true
+            }],
+            "examples": [
+                "lastname=Rogers",
+                "lastname=Dav*"
+            ],
+            "operators": ["="],
+            "wildCardAllowed": true,
+            "description": "Search for a user by last name."
+        }, {
+            "parameter": "organization",
+            "type": "string",
+            "required": [{
+                "method": "GET",
+                "isRequired": false,
+                "administrative": true
+            }, {
+                "method": "POST",
+                "isRequired": false,
+                "administrative": true
+            }],
+            "examples": [
+                "organization=Company",
+                "organization=Gen*"
+            ],
+            "operators": ["="],
+            "wildCardAllowed": true,
+            "description": "Search for a user by organization or body."
         }]
+    }, {
+        "version": "1",
+        "route": "session",
+        "implementation": "security-object",
+        "description": "Returns information about user's sessions and the ability to update those sessions",
+        "httpMethods": [{
+            "httpMethod": "GET",
+            "function": "findSession"
+        }, {
+            "httpMethod": "POST",
+            "function": "updateSession"
+        }, {
+            "httpMethod": "DELETE",
+            "function": "removeSession"
+        }],
+        "parameters": [{
+            "parameter": "id",
+            "type": "number",
+            "required": [{
+                "method": "GET",
+                "isRequired": false,
+                "administrative": true
+            }, {
+                "method": "POST",
+                "isRequired": true,
+                "administrative": true
+            }, {
+                "method": "DELETE",
+                "isRequired": true,
+                "administrative": true
+            }],
+            "examples": [
+                "id=1",
+                "id<50",
+                "id>241"
+            ],
+            "operators": ["=", ">", "<"],
+            "wildCardAllowed": false,
+            "description": "Search for a session by system ID."
+        }, {
+            "parameter": "email",
+            "type": "string",
+            "required": [{
+                "method": "GET",
+                "isRequired": false,
+                "administrative": true
+            }, {
+                "method": "POST",
+                "isRequired": false,
+                "administrative": true
+            }],
+            "examples": [
+                "alias=testUser",
+                "alias=tes*"
+            ],
+            "operators": ["="],
+            "wildCardAllowed": true,
+            "description": "Search for a session specific to a user's email address."
+        }, {
+            "parameter": "timeout",
+            "type": "number",
+            "required": [{
+                "method": "GET",
+                "isRequired": false,
+                "administrative": true
+            }, {
+                "method": "POST",
+                "isRequired": false,
+                "administrative": true
+            }],
+            "examples": [
+                "timeout=15",
+                "timeout<25",
+                "timeout>3"
+            ],
+            "operators": ["=", ">", "<"],
+            "wildCardAllowed": false,
+            "description": "Search for a session based on time remaining."
+        }]
+    }, {
+        "version": "1",
+        "route": "me",
+        "implementation": "security-object",
+        "description": "Returns information about the user currently accessing the route",
+        "httpMethods": [{
+            "httpMethod": "GET",
+            "function": "me"
+        }],
+        "parameters": []
     }]
 }
