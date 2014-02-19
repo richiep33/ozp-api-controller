@@ -1,0 +1,33 @@
+{
+    "api": {
+        "serviceRoot": "/ozone/"
+    },
+    "server": {
+        "useSSL": false,
+        "securePort": 8443,
+        "insecurePort": 8080,
+        "sslPrivateKey": "/Users/inelson/Repositories/test-certificates/api.ozone.org/api.ozone.org.key",
+        "sslCertificate": "/Users/inelson/Repositories/test-certificates/api.ozone.org/api.ozone.org.crt"
+    },
+    "plugins": {
+        "watch": true,
+        "folder": "/Users/inelson/Repositories/ozp-api-plugins"
+    },
+    "logs": {
+        "console": true
+    },
+    "security": {
+        "authentication": "userpass",
+        "authorization": "acl",
+        "forceErrorRedirect": false
+    },
+    "headers": {
+        "cors": {
+            "enable": true,
+            "whitelist": "*"
+        },
+        "csrf": {
+            "enable": true
+        }
+    }
+}

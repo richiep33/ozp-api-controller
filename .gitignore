@@ -3,3 +3,4 @@ config/config.json
 node_modules
 public/*
 plugins
+*.sublime-project
