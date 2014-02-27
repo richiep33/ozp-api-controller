@@ -3,6 +3,9 @@
 
 "use strict";
 
+var ParameterDefinition = require('./ParameterDefinition'),
+    underscore = require('underscore')._;
+
 var Manifest = function(manifest) {
     this._fullManifest = {};
     if (manifest) {
@@ -17,6 +20,7 @@ Manifest.prototype._parseManifest = function() {
     this._name = this._fullManifest.informational.name || 'Unknown';
     this._description = this._fullManifest.informational.description || 'Unknown';
     this._route = this._fullManifest.route.uri;
+    this._resources = this._fullManifest.resources;
 
 };
 
@@ -53,6 +57,15 @@ Manifest.prototype.description = function() {
 
 Manifest.prototype.route = function() {
     return this._route;
+};
+
+/**
+ * Get a list of resources from the manifest.
+ * 
+ * @return {Array}      the list of resources specified by the manifest
+ */
+Manifest.prototype.resources = function(){
+    return this._resources;
 };
 
 module.exports = Manifest;
