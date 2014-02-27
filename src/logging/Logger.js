@@ -7,7 +7,7 @@ var fs = require('fs');
 var events = require('events');
 var underscore = require('underscore')._;
 
-var Log = require('../models/log');
+var Log = require('../models/Log');
 
 /**
  * Logger mechanism for OZONE RESTful controller.
