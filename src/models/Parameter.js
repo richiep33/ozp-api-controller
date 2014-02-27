@@ -8,19 +8,24 @@ var moment = require('moment');
 /**
  * Defines a parameter for use with route.
  *
- * @param key      {String} parameter key
- * @param operator {String} parameter operator
- * @param value    {String} value of the parameter
+ * @param {String} key       parameter key
+ * @param {String} operator  parameter operator
+ * @param {String} value     value of the parameter
  */
 var Parameter = function(key, operator, value) {
     this._key = key;
     this._op = operator;
     this._value = value;
-    if (Number(this._value)) { 
+    
+    if (this._key === "date"){
+        this._valueType = "date";
+    } else if (Number(this._value)) { 
         this._valueType = "number";
     } else if (this._isEmail(this._value)){
         this._valueType = "email";
-    } 
+    } else {
+        this._valueType = "string";
+    }
 };
 
 /**
@@ -30,6 +35,33 @@ var Parameter = function(key, operator, value) {
  */
 Parameter.prototype.type = function(){
     return this._valueType;
+};
+
+/**
+ * Get the parameter name.
+ *
+ * @return {String}     the name of the parameter
+ */
+Parameter.prototype.param = function() {
+    return this._key;
+};
+
+/**
+ * Get the parameter operator.
+ *
+ * @return {String}     the operator
+ */
+Parameter.prototype.op = function() {
+    return this._op;
+};
+
+/**
+ * Get the parameter value.
+ *
+ * @return {String}     the value of the parameter
+ */
+Parameter.prototype.value = function() {
+    return this._value;
 };
 
 /**
