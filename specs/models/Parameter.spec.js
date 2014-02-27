@@ -34,13 +34,13 @@ describe('Parameter', function() {
     it('should return the operator type', function() {
         expect(parameterAssign.opType()).toBe('assignment');
         expect(parameterGT.opType()).toBe('greater-than');
-        expect(arameterLT.opType()).toBe('less-than');
+        expect(parameterLT.opType()).toBe('less-than');
     });
 
     it('should return the operator', function() {
         expect(parameterAssign.op()).toBe('=');
         expect(parameterGT.op()).toBe('>');
-        expect(arameterLT.op()).toBe('<');
+        expect(parameterLT.op()).toBe('<');
     });
 
     it('should return the parameter name', function() {

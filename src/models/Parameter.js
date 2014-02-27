@@ -17,6 +17,8 @@ var Parameter = function(key, operator, value) {
     this._op = operator;
     this._value = value;
     
+    this._determineOpType();
+
     if (this._key === "date"){
         this._valueType = "date";
     } else if (Number(this._value)) { 
@@ -28,13 +30,37 @@ var Parameter = function(key, operator, value) {
     }
 };
 
+Parameter.prototype._determineOpType = function() {
+    switch(this._op){
+    case '=':
+        this._opType = "assignment";
+        break;
+    case '>':
+        this._opType = "greater-than";
+        break;
+    case '<': 
+        this._opType = "less-than";
+        break;
+    // Only these operators are supported, no default. Default to an exception?
+    }
+};
+
 /**
  * Get the type of this parameter.
  *
- * @return {String} the type of parameter
+ * @return {String}     the type of parameter
  */
 Parameter.prototype.type = function(){
     return this._valueType;
+};
+
+/**
+ * Get the type of this parameter's operator.
+ *
+ * @return {String}     the type of the operator
+ */
+Parameter.prototype.opType = function(){
+    return this._opType;
 };
 
 /**
