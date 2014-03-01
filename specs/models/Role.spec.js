@@ -1,5 +1,5 @@
 var rootPath = '../../src';
-var Parameter = require(rootPath + '/models/Role');
+var Role = require(rootPath + '/models/Role');
 
 describe('Role', function() {
 
@@ -21,11 +21,11 @@ describe('Role', function() {
 
         expect(role.type()).toBe('systemadministrator');
         expect(role.attributes().length).toBe(2);
-        expect(role.attributes('privilegedAccess').toBe(true));
-        expect(role.attributes('securityAccess').toBe(true));
+        expect(role.attributes('privilegedAccess')).toBe(true);
+        expect(role.attributes('securityAccess')).toBe(true);
     });
 
-    it('should be allow for setting of role and attributes after instantiation', function() {
+    it('should allow for setting of role and attributes after instantiation', function() {
         role.set('systemadminstrator');
         role.setAttributes({
             privilegedAccess: true,
