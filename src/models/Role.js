@@ -20,7 +20,7 @@ var Role = function(type, attrs) {
     }
     else {
         // Type will default 'NOTSET' unless specified at construction.
-        this._type = "NOTSET";
+        this._type = "__NOTSET__";
     }
     
     this._attributes = {};
@@ -69,16 +69,53 @@ Role.prototype.attributes = function(attr) {
     return retVal;
 };
 
-Role.prototype.addAttribute = function(attr) {
-    
+/**
+ * Set the type of role to a new value
+ *
+ * @param {String} type     the new type to set
+ */
+Role.prototype.set = function(type) {
+    this._type = type;
 };
 
+/**
+ * Change an attribute to a new value
+ *
+ * @param {String}  attr     the attribute to change
+ * @param {Boolean} newValue the new value of the specified attribute
+ */
+Role.prototype.changeAttribute = function(attr, newValue) {
+    this._attributes[attr] = newValue;
+};
+
+/**
+ * Add an attribute to this Role
+ *
+ * @param {String}  attr    the attribute to add
+ * @param {Boolean} value   the value of the new attribute
+ */
+Role.prototype.addAttribute = function(attr, value) {
+    this._attributes[attr] = value;      
+};
+
+/**
+ * Set the given attributes to new values
+ *
+ * @param {Object} attrs     the attribute values
+ */
 Role.prototype.setAttributes = function(attrs) {
-    this._attributes[attrs]
+    for (var key in attrs) {
+        this._attributes[key] = attrs[key];
+    }
 };
 
+/**
+ * Delete an attribute from this Role
+ *
+ * @param {String} attr     the attribute to remove
+ */
 Role.prototype.deleteAttribute = function(attr) {
-    
+    delete this._attributes[attr];
 };
 
 module.exports = Role;

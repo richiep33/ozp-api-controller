@@ -26,7 +26,7 @@ describe('Role', function() {
     });
 
     it('should allow for setting of role and attributes after instantiation', function() {
-        role.set('systemadminstrator');
+        role.set('systemadministrator');
         role.setAttributes({
             privilegedAccess: true,
             securityAccess: true
@@ -34,8 +34,8 @@ describe('Role', function() {
 
         expect(role.type()).toBe('systemadministrator');
         expect(role.attributes().length).toBe(2);
-        expect(role.attributes('privilegedAccess').toBe(true));
-        expect(role.attributes('securityAccess').toBe(true));
+        expect(role.attributes('privilegedAccess')).toBe(true);
+        expect(role.attributes('securityAccess')).toBe(true);
     });
 
     it('should allow for an attribute to be removed', function() {
@@ -46,8 +46,8 @@ describe('Role', function() {
         role.deleteAttribute('privilegedAccess');
 
         expect(role.attributes().length).toBe(1);
-        expect(role.attributes('privilegedAccess').toBe(undefined));
-        expect(role.attributes('securityAccess').toBe(true));
+        expect(role.attributes('privilegedAccess')).toBe(undefined);
+        expect(role.attributes('securityAccess')).toBe(true);
     });
 
     it('should allow for an attribute to be changed', function() {
@@ -58,8 +58,8 @@ describe('Role', function() {
         role.changeAttribute('privilegedAccess', false);
 
         expect(role.attributes().length).toBe(2);
-        expect(role.attributes('privilegedAccess').toBe(false));
-        expect(role.attributes('securityAccess').toBe(true));
+        expect(role.attributes('privilegedAccess')).toBe(false);
+        expect(role.attributes('securityAccess')).toBe(true);
     });
 
     it('should allow for an attribute to be added', function() {
@@ -70,8 +70,8 @@ describe('Role', function() {
         role.addAttribute('corporate', true);
 
         expect(role.attributes().length).toBe(3);
-        expect(role.attributes('privilegedAccess').toBe(true));
-        expect(role.attributes('securityAccess').toBe(true));
-        expect(role.attributes('corporate').toBe(true));
+        expect(role.attributes('privilegedAccess')).toBe(true);
+        expect(role.attributes('securityAccess')).toBe(true);
+        expect(role.attributes('corporate')).toBe(true);
     });
 });
