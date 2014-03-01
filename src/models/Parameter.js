@@ -6,8 +6,11 @@
 var moment = require('moment');
 
 /**
+ * Parameter
+ * 
  * Defines a parameter for use with route.
  *
+ * @constructor
  * @param {String} key       parameter key
  * @param {String} operator  parameter operator
  * @param {String} value     value of the parameter
@@ -19,6 +22,7 @@ var Parameter = function(key, operator, value) {
     
     this._determineOpType();
 
+    // Determine parameter type
     if (this._key === "date"){
         this._valueType = "date";
     } else if (Number(this._value)) { 
@@ -30,6 +34,11 @@ var Parameter = function(key, operator, value) {
     }
 };
 
+/**
+ * Determine the operator type
+ *
+ * @private
+ */
 Parameter.prototype._determineOpType = function() {
     switch(this._op){
     case '=':
