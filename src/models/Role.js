@@ -5,7 +5,7 @@
 
 /**
  * Role
- * 
+ *
  * Defines the role of a user
  *
  * @constructor
@@ -16,13 +16,12 @@ var Role = function(type, attrs) {
 
     // Type is optional...
     if (type) {
-        this._type = type;    
-    }
-    else {
+        this._type = type;
+    } else {
         // Type will default 'NOTSET' unless specified at construction.
         this._type = "__NOTSET__";
     }
-    
+
     this._attributes = {};
 
     // If attributes are specified...
@@ -56,7 +55,7 @@ Role.prototype.attributes = function(attr) {
     // If no attribute is specified ...
     if (!attr) {
         retVal = [];
-        // return all attribute keys. 
+        // return all attribute keys.
         for (var key in this._attributes) {
             retVal.push(key);
         }
@@ -95,7 +94,7 @@ Role.prototype.changeAttribute = function(attr, newValue) {
  * @param {Boolean} value   the value of the new attribute
  */
 Role.prototype.addAttribute = function(attr, value) {
-    this._attributes[attr] = value;      
+    this._attributes[attr] = value;
 };
 
 /**

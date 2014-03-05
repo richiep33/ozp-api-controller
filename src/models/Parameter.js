@@ -7,7 +7,7 @@ var moment = require('moment');
 
 /**
  * Parameter
- * 
+ *
  * Defines a parameter for use with route.
  *
  * @constructor
@@ -19,7 +19,7 @@ var Parameter = function(key, operator, value) {
     this._key = key;
     this._op = operator;
     this._value = value;
-    
+
     // Set parameter and operator type
     this._determineParameterType();
     this._determineOpType();
@@ -54,6 +54,7 @@ Parameter.prototype._determineParameterType = function() {
         } else {
             this._valueType = 'string';
         }
+
     }
 
 };
@@ -64,17 +65,17 @@ Parameter.prototype._determineParameterType = function() {
  * @private
  */
 Parameter.prototype._determineOpType = function() {
-    switch(this._op){
-    case '=':
-        this._opType = "assignment";
-        break;
-    case '>':
-        this._opType = "greater-than";
-        break;
-    case '<': 
-        this._opType = "less-than";
-        break;
-    // Only these operators are supported, no default. Default to an exception?
+    switch (this._op) {
+        case '=':
+            this._opType = "assignment";
+            break;
+        case '>':
+            this._opType = "greater-than";
+            break;
+        case '<':
+            this._opType = "less-than";
+            break;
+            // Only these operators are supported, no default. Default to an exception?
     }
 };
 
@@ -83,7 +84,7 @@ Parameter.prototype._determineOpType = function() {
  *
  * @return {String}     the type of parameter
  */
-Parameter.prototype.type = function(){
+Parameter.prototype.type = function() {
     return this._valueType;
 };
 
@@ -92,7 +93,7 @@ Parameter.prototype.type = function(){
  *
  * @return {String}     the type of the operator
  */
-Parameter.prototype.opType = function(){
+Parameter.prototype.opType = function() {
     return this._opType;
 };
 
@@ -130,7 +131,7 @@ Parameter.prototype.value = function() {
  * @param  {String}  toTest the string to test
  * @return {Boolean}        true if the string looks like an email, false otherwise
  */
-Parameter.prototype._isEmail = function(toTest){
+Parameter.prototype._isEmail = function(toTest) {
     var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(toTest);
 };
