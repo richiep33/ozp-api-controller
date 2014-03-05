@@ -17,7 +17,7 @@ describe('Group', function() {
 
     it('should be configurable at instantiation', function() {
         expect(group.name()).toBe('administration');
-        expect(group.description).toBe('System Administrators');
+        expect(group.description()).toBe('System Administrators');
     });
 
     it('should be configurable after instantiation', function() {
