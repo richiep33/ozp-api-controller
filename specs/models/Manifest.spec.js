@@ -1,6 +1,7 @@
 var rootPath = '../../src';
 var Manifest = require(rootPath + '/models/Manifest');
 var securityManifest = require(rootPath + '/security/config/manifest.json');
+var ParameterDefinition = require(rootPath + '/models/ParameterDefinition');
 
 describe('Manifest', function() {
     var manifest;
@@ -56,8 +57,8 @@ describe('Manifest', function() {
     });
 
     it('should provide a list of parameters for a given resource', function() {
-        expect(manifest.parameters().length).not.toBe(0);
-        expect(manifest.parameters()[0] instanceof ParameterDefinition).toBe(true);
+        expect(manifest.parameters(0).length).not.toBe(0);
+        expect(manifest.parameters(0)[0] instanceof ParameterDefinition).toBe(true);
     });
 
     it('should provide a route for a given resource', function() {

@@ -64,8 +64,20 @@ Manifest.prototype.route = function() {
  * 
  * @return {Array}      the list of resources specified by the manifest
  */
-Manifest.prototype.resources = function(){
+Manifest.prototype.resources = function() {
     return this._resources;
+};
+
+Manifest.prototype.parameters = function(index) {
+    
+    var returnParams = [],
+        resourceParams = this._resources[index].parameters;
+
+    for (var iter = 0; iter < resourceParams.length; iter++) {
+        returnParams.push(new ParameterDefinition(resourceParams[iter]));
+    }
+
+    return returnParams;
 };
 
 module.exports = Manifest;
