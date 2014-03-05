@@ -5,10 +5,6 @@
 
 var underscore = require('underscore')._;
 
-var defaults = {
-    users: []
-};
-
 /**
  * Group
  *
@@ -19,12 +15,12 @@ var defaults = {
  */
 var Group = function(groupObject) {
     // Merge defaults and any supplied parameters into a config object
-    var config = underscore.extend({}, defaults, groupObject);
+    var config = underscore.extend({}, groupObject);
 
     // Set internal properties
     this._name = config.name;
     this._description = config.description;
-    this._users = config.users;
+    this._users = [];
 };
 
 /**
