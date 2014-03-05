@@ -16,7 +16,7 @@ describe('Parameter', function() {
     });
 
     it('should check for castable numbers', function() {
-        expect(parameterGT.type()).toBe('number');
+        expect(parameterLT.type()).toBe('number');
     });
 
     it('should check for castable strings', function() {

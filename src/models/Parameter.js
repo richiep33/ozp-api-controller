@@ -20,18 +20,42 @@ var Parameter = function(key, operator, value) {
     this._op = operator;
     this._value = value;
     
+    // Set parameter and operator type
+    this._determineParameterType();
     this._determineOpType();
 
-    // Determine parameter type
-    if (this._key === "date"){
-        this._valueType = "date";
-    } else if (Number(this._value)) { 
-        this._valueType = "number";
-    } else if (this._isEmail(this._value)){
-        this._valueType = "email";
-    } else {
-        this._valueType = "string";
+};
+
+/**
+ * Determine the parameter type, and set it internally
+ *
+ * @private
+ */
+Parameter.prototype._determineParameterType = function() {
+
+    // If the value is a number,
+    if (Number(this._value)) {
+
+        // it could also be a date...
+        if (moment(this._value, 'YYYYMMDD').isValid()) {
+            this._valueType = 'date';
+        } 
+        // If not, it must be a number
+        else {
+            this._valueType = 'number';
+        }
     }
+
+    // If not a number, the value must be a string or email
+    else {
+
+        if (this._isEmail(this._value)) {
+            this._valueType = 'email';
+        } else {
+            this._valueType = 'string';
+        }
+    }
+
 };
 
 /**
